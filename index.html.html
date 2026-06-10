@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TTS Operations Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #060c18; color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; height: 100vh; overflow: hidden; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #1e3058; border-radius: 10px; }
+    input, select, button { font-family: inherit; }
+    input:focus, select:focus { outline: 2px solid #4f8ef7; outline-offset: -1px; }
+    button:focus-visible { outline: 2px solid #4f8ef7; outline-offset: 2px; }
+    .fade-in { animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .card { background: #0c1628; border: 1px solid #162040; border-radius: 12px; }
+    .hover-row { transition: background 0.1s; }
+    .hover-row:hover { background: rgba(79,142,247,0.05) !important; }
+    .pm-item { cursor: pointer; border-left: 3px solid transparent; transition: background 0.1s; padding: 10px 16px; }
+    .pm-item:hover { background: #0e1a30; }
+    .pm-item.active { background: #0b1526; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const API_DATES  = 'https://community-prod-n8n.pattern.com/webhook/tts-proxy-dates';
+const API_REPORT = 'https://community-prod-n8n.pattern.com/webhook/tts-proxy-report';
+const VIDEO_GOAL = 100;
+const PM_COLORS  = ['#4f8ef7','#22c55e','#f59e0b','#ef4444','#a855f7','#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6','#818cf8','#fb7185'];
+const PERIODS    = [['daily','Daily'],['7d','Last 7 Days'],['mtd','MTD'],['30d','Last 30 Days']];
+const PERIOD_LABEL = { daily:'Today', '7d':'Last 7 Days', mtd:'Month to Date', '30d':'Last 30 Days' };
+
+// ─── LocalStorage helpers ─────────────────────────────────────────────────────
+const lsGet = (k, def) => { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : def; } catch { return def; } };
+const lsSet = (k, v)   => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+// ─── Migration ────────────────────────────────────────────────────────────────
+(function migrate() {
+  try {
+    const s = localStorage.getItem('tts_pms');
+    if (s) { const p = JSON.parse(s); if (!Array.isArray(p) || p.length < 10) { localStorage.removeItem('tts_pms'); localStorage.removeItem('tts_brand_map'); } }
+  } catch {}
+})();
+
+// ─── Period aggregation ───────────────────────────────────────────────────────
+function aggregateData(rows) {
+  const map = {};
+  rows.forEach(row => {
+    if (!row.brand_name) return;
+    if (!map[row.brand_name]) map[row.brand_name] = { brand_name: row.brand_name, new_videos:0, sample_request:0, sample_approved:0, gmv:0, tp_creator_count:0, l3_plus:0, tp_accepted:0, _ctr:0, _ctor:0, _aov:0, _days:0, dod:null };
+    const b = map[row.brand_name];
+    b.new_videos      += row.new_videos || 0;
+    b.sample_request  += row.sample_request || 0;
+    b.sample_approved += row.sample_approved || 0;
+    b.gmv             += row.gmv || 0;
+    b.tp_creator_count+= row.tp_creator_count || 0;
+    b.l3_plus         += row.l3_plus || 0;
+    b.tp_accepted     += row.tp_accepted || 0;
+    b._ctr  += row.video_ctr || 0;
+    b._ctor += row.video_ctor || 0;
+    b._aov  += row.aov || 0;
+    b._days++;
+  });
+  return Object.values(map).map(b => ({ ...b, video_ctr: b._days ? b._ctr/b._days : 0, video_ctor: b._days ? b._ctor/b._days : 0, aov: b._days ? b._aov/b._days : 0, tp_accept_rate: b.tp_creator_count ? b.tp_accepted/b.tp_creator_count : 0 }));
+}
+
+// ─── Formatters ───────────────────────────────────────────────────────────────
+const fmt$   = v => (v==null||isNaN(v)) ? '—' : '$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmtN   = v => (v==null||isNaN(v)) ? '—' : Number(v).toLocaleString();
+const fmtPct = v => (v==null||isNaN(v)) ? '—' : (v*100).toFixed(1)+'%';
+const fmtDod = v => { if (v==null||isNaN(v)) return '—'; const p=(v*100).toFixed(1); return (v>0?'+':'')+p+'%'; };
+const dodColor = v => !v&&v!==0 ? '#64748b' : v>0 ? '#22c55e' : v<0 ? '#ef4444' : '#64748b';
+const initials = name => name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+
+// ─── Default PMs ─────────────────────────────────────────────────────────────
+const DEFAULT_PMS = [
+  {id:'abrar',name:'Abrar',color:PM_COLORS[0]},{id:'aman',name:'Aman',color:PM_COLORS[1]},
+  {id:'amruta',name:'Amruta',color:PM_COLORS[2]},{id:'ansh',name:'Ansh',color:PM_COLORS[3]},
+  {id:'harshad',name:'Harshad',color:PM_COLORS[4]},{id:'jing',name:'Jing',color:PM_COLORS[5]},
+  {id:'kaustubh',name:'Kaustubh',color:PM_COLORS[6]},{id:'oshin',name:'Oshin',color:PM_COLORS[7]},
+  {id:'palak',name:'Palak',color:PM_COLORS[8]},{id:'ritika',name:'Ritika',color:PM_COLORS[9]},
+  {id:'saat',name:'Saat',color:PM_COLORS[10]},{id:'sakshi',name:'Sakshi',color:PM_COLORS[11]},
+  {id:'sanskrati',name:'Sanskrati',color:PM_COLORS[0]},{id:'simran',name:'Simran',color:PM_COLORS[1]},
+  {id:'sumit',name:'Sumit',color:PM_COLORS[2]},{id:'taanisha',name:'Taanisha',color:PM_COLORS[3]},
+  {id:'tanishk',name:'Tanishk',color:PM_COLORS[4]},
+];
+
+const DEFAULT_BRAND_MAP = {
+  "Integrative Therapeutics":"abrar","PBfit":"abrar","Leatherman Tools":"abrar","youtheory":"abrar","Herbs, Etc.":"abrar","Life Extension Supplements":"abrar",
+  "Natural Factors":"aman","Fix-a-Flat":"aman","Davids Premium Oral Care":"aman","Flora Health Shop":"aman","Renzo's Vitamins":"aman","Cosyuree.":"aman","TruNiagen":"aman",
+  "HALEYS Beauty":"amruta","Kiyomi Skin":"amruta","skinfix":"amruta","Ulta Beauty":"amruta",
+  "GAT Sport USA":"ansh","livehumann":"ansh","MegaFood Shop":"ansh","Strider Bikes":"ansh","K9 Feline Natural":"ansh",
+  "One A Day Shop":"harshad","Floradix":"harshad","Gaia Herbs Shop":"harshad","Zenwise Health":"harshad","Emerald Labs":"harshad","Elevate organic":"harshad","Elevate Organic":"harshad",
+  "Murad Skincare":"jing",
+  "Away Travel":"kaustubh","Forever 21":"kaustubh","Roxy":"kaustubh","Volcom":"kaustubh",
+  "Brutus Broth":"oshin","Color Wow Hair":"oshin","CeraVe":"oshin",
+  "Buttermints":"palak","Mercola Market Shop":"palak","Thinx US":"palak","Wiley's Finest Shop":"palak",
+  "Megababe":"ritika","OLLY Wellness":"ritika","NOW":"ritika","Philips Shop US":"ritika","Vital Proteins Shop":"ritika","Kradle":"ritika",
+  "Keeps":"saat",
+  "Uqora Official":"sakshi","New Chapter Inc":"sakshi","The Original Swedish Candy":"sakshi","ILIA Beauty":"sakshi","Fazit":"sakshi","SuavecitoPomade":"sakshi",
+  "G2G Bar":"sanskrati","Heatonist - Stay Spicy":"sanskrati","Balance of Nature Shop":"sanskrati","Blue-Emu":"sanskrati","Hims & Hers":"sanskrati","Sakura of America Shop":"sanskrati",
+  "CureHydration":"simran","SmartMouth":"simran","Weider Global Nutrition":"simran","Baby Brezza":"simran","Pure Encapsulations Shop":"simran",
+  "MuscleTech":"sumit","SIXSTAR PRO":"sumit","NaturalSlimUSA":"sumit","Optimum Nutrition Shop":"sumit",
+  "Better Dog Supplements":"taanisha","BallBoyz Soap":"taanisha","Coco&Eve":"taanisha","Urban Decay Cosmetics":"taanisha","Snackworks":"taanisha",
+  "Barimelts":"tanishk","Dr. Tobias":"tanishk","Seeking Health":"tanishk",
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// APP
+// ════════════════════════════════════════════════════════════════════════════
+function App() {
+  const [dates, setDates]           = useState([]);
+  const [date, setDate]             = useState('');
+  const [report, setReport]         = useState([]);
+  const [loading, setLoading]       = useState(false);
+  const [apiError, setApiError]     = useState('');
+  const [pms, setPms]               = useState(() => lsGet('tts_pms', DEFAULT_PMS));
+  const [brandMap, setBrandMap]     = useState(() => lsGet('tts_brand_map', DEFAULT_BRAND_MAP));
+  const [goals, setGoals]           = useState(() => lsGet('tts_goals', {}));
+  const [selectedPm, setSelectedPm] = useState(null);
+  const [view, setView]             = useState('pm');  // 'pm' | 'manager' | 'video'
+  const [showSettings, setShowSettings] = useState(false);
+  const [sortBy, setSortBy]         = useState('gmv');
+  const [sortDir, setSortDir]       = useState('desc');
+  const [period, setPeriod]         = useState('daily');
+  const [aggReport, setAggReport]   = useState([]);
+  const [aggLoading, setAggLoading] = useState(false);
+  // Video tracker state — keyed by date string
+  const [videoData, setVideoData]   = useState({});
+  const [videoLoading, setVideoLoading] = useState(false);
+
+  useEffect(() => lsSet('tts_pms', pms),       [pms]);
+  useEffect(() => lsSet('tts_brand_map', brandMap), [brandMap]);
+  useEffect(() => lsSet('tts_goals', goals),   [goals]);
+
+  // Fetch dates
+  useEffect(() => {
+    setApiError('');
+    fetch(API_DATES)
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(d => { const list = Array.isArray(d) ? d : (d.dates||[]); setDates(list); if (list.length) setDate(list[0]); })
+      .catch(() => setApiError('CORS_OR_NETWORK'));
+  }, []);
+
+  // Fetch daily report
+  useEffect(() => {
+    if (!date) return;
+    setLoading(true); setApiError('');
+    fetch(`${API_REPORT}?date=${date}`)
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(d => { setReport(Array.isArray(d) ? d : []); setLoading(false); })
+      .catch(() => { setApiError('CORS_OR_NETWORK'); setLoading(false); });
+  }, [date]);
+
+  // Aggregate for period views
+  useEffect(() => {
+    if (period === 'daily' || !dates.length) return;
+    setAggLoading(true);
+    const today = dates[0];
+    let toFetch;
+    if (period === '7d')  toFetch = dates.slice(0,7);
+    else if (period === 'mtd') { const m = today.slice(0,7); toFetch = dates.filter(d=>d.startsWith(m)); }
+    else if (period === '30d') toFetch = dates.slice(0,30);
+    Promise.all(toFetch.map(d => fetch(`${API_REPORT}?date=${d}`).then(r=>r.json()).catch(()=>[])))
+      .then(all => { setAggReport(aggregateData(all.flat())); setAggLoading(false); });
+  }, [period, dates]);
+
+  // Fetch video data: last 14 days + full MTD + last month same period
+  useEffect(() => {
+    if (view !== 'video' || !dates.length) return;
+    const today        = dates[0];
+    const currentMonth = today.slice(0,7);
+    const dayOfMonth   = parseInt(today.slice(8,10));
+    const lmd          = new Date(today); lmd.setDate(1); lmd.setMonth(lmd.getMonth()-1);
+    const lastMoPrefix = `${lmd.getFullYear()}-${String(lmd.getMonth()+1).padStart(2,'0')}`;
+    const mtdDates     = dates.filter(d => d.startsWith(currentMonth));
+    const lastMoDates  = dates.filter(d => d.startsWith(lastMoPrefix) && parseInt(d.slice(8,10)) <= dayOfMonth);
+    const allNeeded    = [...new Set([...dates.slice(0,14), ...mtdDates, ...lastMoDates])];
+    const missing      = allNeeded.filter(d => !videoData[d]);
+    if (!missing.length) return;
+    setVideoLoading(true);
+    Promise.all(missing.map(d => fetch(`${API_REPORT}?date=${d}`).then(r=>r.json()).catch(()=>[])))
+      .then(results => {
+        setVideoData(prev => {
+          const next = { ...prev };
+          missing.forEach((d, i) => { next[d] = results[i]; });
+          return next;
+        });
+        setVideoLoading(false);
+      });
+  }, [view, dates]);
+
+  const activeReport = period === 'daily' ? report : aggReport;
+  const isLoading    = loading || aggLoading;
+  const brandList    = useMemo(() => activeReport.map(r => r.brand_name), [activeReport]);
+  const byBrand      = useMemo(() => Object.fromEntries(activeReport.map(r => [r.brand_name, r])), [activeReport]);
+  const getPmBrands  = useCallback((pmId) => brandList.filter(b => brandMap[b] === pmId), [brandList, brandMap]);
+  const unassigned   = useMemo(() => brandList.filter(b => !brandMap[b]), [brandList, brandMap]);
+
+  const getPmStats = useCallback((pmId) => {
+    const brands = pmId === '__unassigned' ? unassigned : getPmBrands(pmId);
+    return brands.reduce((acc, b) => {
+      const d = byBrand[b]; if (!d) return acc;
+      acc.gmv += d.gmv||0; acc.videos += d.new_videos||0; acc.req += d.sample_request||0;
+      acc.approved += d.sample_approved||0; acc.goal += parseInt(goals[b]||0); acc.brands++;
+      return acc;
+    }, { gmv:0, videos:0, req:0, approved:0, goal:0, brands:0 });
+  }, [getPmBrands, unassigned, byBrand, goals]);
+
+  const handleSort = col => { if (sortBy===col) setSortDir(d=>d==='asc'?'desc':'asc'); else { setSortBy(col); setSortDir('desc'); } };
+  const updateGoal  = (brand, val) => setGoals(prev => ({ ...prev, [brand]: val }));
+  const assignBrand = (brand, pmId) => setBrandMap(prev => ({ ...prev, [brand]: pmId||undefined }));
+
+  const sortedBrands = useMemo(() => {
+    const brands = selectedPm?.id==='__unassigned' ? unassigned : (selectedPm ? getPmBrands(selectedPm.id) : []);
+    return [...brands].sort((a,b) => {
+      const da = byBrand[a], db = byBrand[b]; let va, vb;
+      switch (sortBy) {
+        case 'gmv':      va=da?.gmv||0;             vb=db?.gmv||0;             break;
+        case 'videos':   va=da?.new_videos||0;       vb=db?.new_videos||0;      break;
+        case 'req':      va=da?.sample_request||0;   vb=db?.sample_request||0;  break;
+        case 'approved': va=da?.sample_approved||0;  vb=db?.sample_approved||0; break;
+        case 'dod':      va=da?.dod||0;              vb=db?.dod||0;             break;
+        case 'goal_pct': { const ga=parseInt(goals[a]||0),gb=parseInt(goals[b]||0); va=ga>0?(da?.sample_approved||0)/ga:-1; vb=gb>0?(db?.sample_approved||0)/gb:-1; break; }
+        default: va=vb=0;
+      }
+      return sortDir==='asc' ? va-vb : vb-va;
+    });
+  }, [selectedPm, unassigned, getPmBrands, byBrand, sortBy, sortDir, goals]);
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', height:'100vh' }}>
+      <Header
+        dates={dates} date={date} setDate={d=>{setDate(d);setPeriod('daily');}}
+        view={view} setView={setView}
+        period={period} setPeriod={setPeriod}
+        loading={isLoading || videoLoading} apiError={apiError}
+        onSettings={() => setShowSettings(true)}
+      />
+      <div style={{ display:'flex', flex:1, overflow:'hidden' }}>
+        {view === 'pm' && (
+          <Sidebar pms={pms} selectedPm={selectedPm} setSelectedPm={setSelectedPm} getPmStats={getPmStats} unassignedCount={unassigned.length} />
+        )}
+        <main style={{ flex:1, overflowY:'auto', padding:'28px 32px' }}>
+          {apiError === 'CORS_OR_NETWORK' ? <CorsError /> :
+           view === 'video'   ? <VideoTracker dates={dates} videoData={videoData} videoLoading={videoLoading} pms={pms} brandMap={brandMap} goals={goals} updateGoal={updateGoal} /> :
+           view === 'manager' ? <ManagerView pms={pms} getPmStats={getPmStats} getPmBrands={getPmBrands} byBrand={byBrand} goals={goals} period={period} onDrillIn={pm=>{setSelectedPm(pm);setView('pm');}} /> :
+           selectedPm         ? <PMView pm={selectedPm} brands={sortedBrands} byBrand={byBrand} goals={goals} updateGoal={updateGoal} sortBy={sortBy} sortDir={sortDir} handleSort={handleSort} stats={getPmStats(selectedPm.id)} period={period} /> :
+           <EmptyState />}
+        </main>
+      </div>
+      {showSettings && <SettingsModal pms={pms} setPms={setPms} brandList={brandList} brandMap={brandMap} assignBrand={assignBrand} onClose={()=>setShowSettings(false)} />}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// HEADER
+// ════════════════════════════════════════════════════════════════════════════
+function Header({ dates, date, setDate, view, setView, period, setPeriod, loading, apiError, onSettings }) {
+  const NavBtn = ({ v, label }) => (
+    <button onClick={() => setView(v)} style={{
+      padding:'6px 16px', background: view===v ? 'rgba(79,142,247,0.15)' : 'transparent',
+      color: view===v ? '#4f8ef7' : '#64748b', border:'none', cursor:'pointer', fontSize:'13px',
+      fontWeight: view===v ? 700 : 500, borderRadius:'6px', transition:'all 0.15s', whiteSpace:'nowrap'
+    }}>{label}</button>
+  );
+  return (
+    <header style={{ background:'#0a1120', borderBottom:'1px solid #162040', padding:'0 20px', display:'flex', alignItems:'center', gap:'8px', height:'54px', flexShrink:0, overflowX:'auto' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0, marginRight:'8px' }}>
+        <div style={{ width:'28px', height:'28px', borderRadius:'8px', background:'linear-gradient(135deg,#4f8ef7,#a855f7)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px' }}>📊</div>
+        <span style={{ fontWeight:800, fontSize:'15px', color:'#f1f5f9', letterSpacing:'-0.3px' }}>TTS Ops</span>
+      </div>
+      <div style={{ width:'1px', height:'20px', background:'#162040', flexShrink:0, margin:'0 4px' }} />
+      <div style={{ display:'flex', gap:'2px', flexShrink:0 }}>
+        <NavBtn v="pm"      label="PM View" />
+        <NavBtn v="manager" label="Manager" />
+        <NavBtn v="video"   label="📹 Video Tracker" />
+      </div>
+      <div style={{ width:'1px', height:'20px', background:'#162040', flexShrink:0, margin:'0 4px' }} />
+      {view !== 'video' && <>
+        {period === 'daily' && (
+          <select value={date} onChange={e=>setDate(e.target.value)} style={{ background:'#0f1e35', border:'1px solid #162040', color:'#94a3b8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer', flexShrink:0 }}>
+            {dates.map(d=><option key={d} value={d}>{d}</option>)}
+          </select>
+        )}
+        <div style={{ display:'flex', background:'#0f1e35', border:'1px solid #162040', borderRadius:'7px', overflow:'hidden', flexShrink:0 }}>
+          {PERIODS.map(([v,l]) => (
+            <button key={v} onClick={()=>setPeriod(v)} style={{ padding:'5px 11px', background:period===v?'#4f8ef7':'transparent', color:period===v?'#fff':'#64748b', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:period===v?700:400, transition:'all 0.15s', whiteSpace:'nowrap' }}>{l}</button>
+          ))}
+        </div>
+      </>}
+      <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'10px', flexShrink:0 }}>
+        {loading && <span style={{ color:'#475569', fontSize:'12px', display:'flex', alignItems:'center', gap:'5px' }}><Spinner />Loading...</span>}
+        <button onClick={onSettings} style={{ background:'#0f1e35', border:'1px solid #162040', color:'#94a3b8', padding:'5px 13px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', transition:'all 0.15s' }}
+          onMouseEnter={e=>e.target.style.color='#f1f5f9'} onMouseLeave={e=>e.target.style.color='#94a3b8'}>
+          ⚙ Settings
+        </button>
+      </div>
+    </header>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SIDEBAR
+// ════════════════════════════════════════════════════════════════════════════
+function Sidebar({ pms, selectedPm, setSelectedPm, getPmStats, unassignedCount }) {
+  return (
+    <aside style={{ width:'220px', background:'#080f1e', borderRight:'1px solid #162040', overflowY:'auto', flexShrink:0 }}>
+      <div style={{ padding:'14px 16px 8px', fontSize:'10px', fontWeight:700, color:'#334155', textTransform:'uppercase', letterSpacing:'1px' }}>Project Managers</div>
+      {pms.map(pm => {
+        const s = getPmStats(pm.id);
+        const active = selectedPm?.id === pm.id;
+        return (
+          <div key={pm.id} className={`pm-item${active?' active':''}`} onClick={()=>setSelectedPm(pm)} style={{ borderLeftColor: active ? pm.color : 'transparent' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+              <div style={{ width:'30px', height:'30px', borderRadius:'8px', background:`${pm.color}22`, border:`1px solid ${pm.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:700, color:pm.color, flexShrink:0 }}>{initials(pm.name)}</div>
+              <div>
+                <div style={{ fontWeight:600, fontSize:'13px', color: active?'#f1f5f9':'#cbd5e1', lineHeight:1.2 }}>{pm.name}</div>
+                <div style={{ fontSize:'11px', color:'#334155', marginTop:'1px' }}>{s.brands} brands · {fmt$(s.gmv)}</div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      {unassignedCount > 0 && (
+        <div className={`pm-item${selectedPm?.id==='__unassigned'?' active':''}`} onClick={()=>setSelectedPm({id:'__unassigned',name:'Unassigned',color:'#475569'})} style={{ marginTop:'8px', borderTop:'1px solid #0f1e35', borderLeftColor: selectedPm?.id==='__unassigned'?'#475569':'transparent' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+            <div style={{ width:'30px', height:'30px', borderRadius:'8px', background:'#1e293b', border:'1px solid #334155', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:700, color:'#64748b' }}>?</div>
+            <div>
+              <div style={{ fontWeight:600, fontSize:'13px', color:'#64748b' }}>Unassigned</div>
+              <div style={{ fontSize:'11px', color:'#334155' }}>{unassignedCount} brands</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </aside>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PM VIEW
+// ════════════════════════════════════════════════════════════════════════════
+function PMView({ pm, brands, byBrand, goals, updateGoal, sortBy, sortDir, handleSort, stats, period }) {
+  const goalPct = stats.goal > 0 ? Math.min(100, (stats.approved/stats.goal)*100) : null;
+  return (
+    <div className="fade-in">
+      <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'24px' }}>
+        <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:`${pm.color}22`, border:`1px solid ${pm.color}55`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', fontWeight:800, color:pm.color }}>{initials(pm.name)}</div>
+        <div>
+          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#f1f5f9', letterSpacing:'-0.4px' }}>{pm.name}</h2>
+          <div style={{ fontSize:'12px', color:'#475569' }}>{brands.length} brands · {PERIOD_LABEL[period]}</div>
+        </div>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:'12px', marginBottom:'28px' }}>
+        <StatCard label="Total GMV"       value={fmt$(stats.gmv)}      color="#22c55e" icon="💰" />
+        <StatCard label="New Videos"      value={fmtN(stats.videos)}   color="#4f8ef7" icon="🎬" />
+        <StatCard label="Sample Requests" value={fmtN(stats.req)}      color="#a855f7" icon="📦" />
+        <StatCard label="Approved"        value={fmtN(stats.approved)} color="#f59e0b" icon="✅" />
+        {goalPct !== null && <StatCard label="Goal Progress" value={`${stats.approved} / ${stats.goal}`} sub={`${goalPct.toFixed(0)}% of goal`} color={goalPct>=100?'#22c55e':goalPct>=60?'#f59e0b':'#ef4444'} icon="🎯" bar={goalPct} />}
+      </div>
+      <div className="card" style={{ overflow:'hidden' }}>
+        <div style={{ overflowX:'auto' }}>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
+            <thead>
+              <tr style={{ background:'#0a1427', borderBottom:'1px solid #162040' }}>
+                <Th label="Brand" />
+                <Th label="Videos"    col="videos"   sortBy={sortBy} sortDir={sortDir} onSort={handleSort} right />
+                {period==='daily' && <Th label="DoD%" col="dod" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} right />}
+                <Th label="GMV"       col="gmv"      sortBy={sortBy} sortDir={sortDir} onSort={handleSort} right />
+                <Th label="Samples Req" col="req"    sortBy={sortBy} sortDir={sortDir} onSort={handleSort} right />
+                <Th label="Approved"  col="approved" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} right />
+                <Th label="Goal / Progress" col="goal_pct" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+                <Th label="TP Outreach" right /><Th label="L3+ Vids" right /><Th label="L3+ Accept%" right /><Th label="AOV" right />
+              </tr>
+            </thead>
+            <tbody>
+              {brands.map((brand, i) => {
+                const d = byBrand[brand];
+                const g = parseInt(goals[brand]||0);
+                const pct = g>0&&d ? Math.min(100,((d.sample_approved||0)/g)*100) : null;
+                const bc = pct==null?'':pct>=100?'#22c55e':pct>=60?'#f59e0b':'#ef4444';
+                return (
+                  <tr key={brand} className="hover-row" style={{ borderBottom:'1px solid #0e1c2f', background:'transparent' }}>
+                    <td style={{ padding:'10px 14px', color:'#f1f5f9', fontWeight:600, whiteSpace:'nowrap' }}>{brand}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#94a3b8' }}>{fmtN(d?.new_videos)}</td>
+                    {period==='daily' && <td style={{ padding:'10px 14px', textAlign:'right', color:dodColor(d?.dod), fontWeight:700 }}>{fmtDod(d?.dod)}</td>}
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#22c55e', fontWeight:700 }}>{fmt$(d?.gmv)}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>{fmtN(d?.sample_request)}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>{fmtN(d?.sample_approved)}</td>
+                    <td style={{ padding:'10px 14px', minWidth:'190px' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:'7px' }}>
+                        <input type="number" min="0" value={goals[brand]||''} onChange={e=>updateGoal(brand,e.target.value)} placeholder="Set goal"
+                          style={{ width:'68px', background:'#0f1e35', border:'1px solid #1e3058', color:'#94a3b8', padding:'3px 7px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }} />
+                        {pct!==null && <>
+                          <div style={{ flex:1, background:'#0f1e35', borderRadius:'4px', height:'5px', minWidth:'50px' }}>
+                            <div style={{ height:'100%', borderRadius:'4px', width:`${pct}%`, background:bc, transition:'width 0.3s' }} />
+                          </div>
+                          <span style={{ fontSize:'11px', color:bc, minWidth:'32px', fontWeight:700 }}>{pct.toFixed(0)}%</span>
+                        </>}
+                      </div>
+                    </td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>{fmtN(d?.tp_creator_count)}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>{fmtN(d?.l3_plus)}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>{fmtPct(d?.tp_accept_rate)}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>{fmt$(d?.aov)}</td>
+                  </tr>
+                );
+              })}
+              {brands.length===0 && <tr><td colSpan={11} style={{ padding:'40px', textAlign:'center', color:'#334155' }}>No brands assigned. Use ⚙ Settings → Assign Brands.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MANAGER VIEW
+// ════════════════════════════════════════════════════════════════════════════
+function ManagerView({ pms, getPmStats, getPmBrands, byBrand, goals, onDrillIn, period }) {
+  const allStats = pms.reduce((acc,pm) => {
+    const s = getPmStats(pm.id); acc.gmv+=s.gmv; acc.videos+=s.videos; acc.req+=s.req; acc.approved+=s.approved; acc.goal+=s.goal; return acc;
+  }, {gmv:0,videos:0,req:0,approved:0,goal:0});
+  return (
+    <div className="fade-in">
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'24px' }}>
+        <div>
+          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#f1f5f9', letterSpacing:'-0.4px' }}>Manager Overview</h2>
+          <div style={{ fontSize:'12px', color:'#475569', marginTop:'2px' }}>{PERIOD_LABEL[period]} · {pms.length} PMs · {pms.reduce((a,pm)=>a+getPmStats(pm.id).brands,0)} brands</div>
+        </div>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:'12px', marginBottom:'32px' }}>
+        <StatCard label="Portfolio GMV"    value={fmt$(allStats.gmv)}      color="#22c55e" icon="💰" />
+        <StatCard label="Total Videos"     value={fmtN(allStats.videos)}   color="#4f8ef7" icon="🎬" />
+        <StatCard label="Sample Requests"  value={fmtN(allStats.req)}      color="#a855f7" icon="📦" />
+        <StatCard label="Total Approved"   value={fmtN(allStats.approved)} color="#f59e0b" icon="✅" />
+        {allStats.goal>0 && <StatCard label="Portfolio Goal" value={`${allStats.approved}/${allStats.goal}`} sub={`${Math.min(100,allStats.approved/allStats.goal*100).toFixed(0)}%`} color={allStats.approved/allStats.goal>=1?'#22c55e':allStats.approved/allStats.goal>=0.6?'#f59e0b':'#ef4444'} icon="🎯" bar={Math.min(100,allStats.approved/allStats.goal*100)} />}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(310px,1fr))', gap:'16px' }}>
+        {pms.map(pm => {
+          const s = getPmStats(pm.id);
+          const brands = getPmBrands(pm.id);
+          const goalPct = s.goal>0 ? Math.min(100,(s.approved/s.goal)*100) : null;
+          const bc = goalPct==null?'':goalPct>=100?'#22c55e':goalPct>=60?'#f59e0b':'#ef4444';
+          const top = [...brands].sort((a,b)=>(byBrand[b]?.gmv||0)-(byBrand[a]?.gmv||0)).slice(0,3);
+          return (
+            <div key={pm.id} onClick={()=>onDrillIn(pm)} style={{ background:'#0c1628', border:'1px solid #162040', borderTop:`3px solid ${pm.color}`, borderRadius:'12px', padding:'18px', cursor:'pointer', transition:'transform 0.15s, box-shadow 0.15s' }}
+              onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow=`0 8px 24px rgba(0,0,0,0.3)`; }}
+              onMouseLeave={e=>{ e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=''; }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'16px' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                  <div style={{ width:'34px', height:'34px', borderRadius:'9px', background:`${pm.color}22`, border:`1px solid ${pm.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:800, color:pm.color }}>{initials(pm.name)}</div>
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:'15px', color:'#f1f5f9' }}>{pm.name}</div>
+                    <div style={{ fontSize:'11px', color:'#475569' }}>{s.brands} brands</div>
+                  </div>
+                </div>
+                <div style={{ textAlign:'right' }}>
+                  <div style={{ fontSize:'19px', fontWeight:800, color:'#22c55e' }}>{fmt$(s.gmv)}</div>
+                  <div style={{ fontSize:'10px', color:'#475569', textTransform:'uppercase', letterSpacing:'0.5px' }}>GMV</div>
+                </div>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'10px', marginBottom:'14px' }}>
+                <MiniStat label="Videos"   value={fmtN(s.videos)}   color="#4f8ef7" />
+                <MiniStat label="Req"      value={fmtN(s.req)}      color="#a855f7" />
+                <MiniStat label="Approved" value={fmtN(s.approved)} color="#f59e0b" />
+              </div>
+              {goalPct!==null && (
+                <div style={{ marginBottom:'12px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', color:'#475569', marginBottom:'5px' }}>
+                    <span>Sample Goal</span><span style={{ color:bc, fontWeight:700 }}>{goalPct.toFixed(0)}%</span>
+                  </div>
+                  <div style={{ background:'#0f1e35', borderRadius:'4px', height:'4px' }}>
+                    <div style={{ height:'100%', borderRadius:'4px', width:`${goalPct}%`, background:bc, transition:'width 0.3s' }} />
+                  </div>
+                </div>
+              )}
+              {top.length>0 && <div style={{ fontSize:'11px', color:'#334155', borderTop:'1px solid #0f1e35', paddingTop:'10px' }}>Top: {top.join(' · ')}</div>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// VIDEO TRACKER
+// ════════════════════════════════════════════════════════════════════════════
+const STATUS_CONFIG = {
+  active:   { label:'Active',      color:'#22c55e', bg:'#052e16', icon:'✅' },
+  dipped:   { label:'Dipped',      color:'#ef4444', bg:'#2d0a0a', icon:'📉' },
+  pipeline: { label:'In Pipeline', color:'#f59e0b', bg:'#2d1a00', icon:'🔄' },
+  inactive: { label:'Inactive',    color:'#475569', bg:'#0f172a', icon:'💤' },
+};
+
+function computeBrandVideoStatus(brand, dates, videoData) {
+  const getVids = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.new_videos || 0;
+  const getSamp = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.sample_approved || 0;
+  const last7sum = dates.slice(0,7).reduce((s,d)=>s+getVids(d),0);
+  const prev7sum = dates.slice(7,14).reduce((s,d)=>s+getVids(d),0);
+  const recentSamples = dates.slice(0,7).reduce((s,d)=>s+getSamp(d),0);
+  if (last7sum===0 && recentSamples>0) return 'pipeline';
+  if (last7sum===0 && prev7sum===0)    return 'inactive';
+  if (prev7sum>=3 && last7sum < prev7sum*0.5) return 'dipped';
+  return 'active';
+}
+
+function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, updateGoal }) {
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [pmFilter, setPmFilter]         = useState('all');
+
+  const today        = dates[0] || '';
+  const currentMonth = today.slice(0,7);
+  const dayOfMonth   = parseInt(today.slice(8,10)) || 1;
+
+  const lastMoPrefix = useMemo(() => {
+    if (!today) return '';
+    const d = new Date(today); d.setDate(1); d.setMonth(d.getMonth()-1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }, [today]);
+
+  const mtdDates    = useMemo(() => dates.filter(d=>d.startsWith(currentMonth)), [dates, currentMonth]);
+  const lastMoDates = useMemo(() => dates.filter(d=>d.startsWith(lastMoPrefix) && parseInt(d.slice(8,10))<=dayOfMonth), [dates, lastMoPrefix, dayOfMonth]);
+  const lastMoLabel = lastMoPrefix ? `${lastMoPrefix.slice(5)} 1-${String(dayOfMonth).padStart(2,'0')}` : 'Last Mo.';
+
+  const allBrands = useMemo(() => {
+    if (!dates.length || !videoData[dates[0]]) return [];
+    return [...new Set(dates.slice(0,14).flatMap(d=>(videoData[d]||[]).map(r=>r.brand_name).filter(Boolean)))];
+  }, [dates, videoData]);
+
+  const brandAnalysis = useMemo(() => {
+    if (!dates.length) return [];
+    return allBrands.map(brand => {
+      const getVids = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.new_videos||0;
+      const getSamp = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.sample_approved||0;
+      const last7    = dates.slice(0,7).map(getVids);
+      const last7sum = last7.reduce((a,b)=>a+b,0);
+      const prev7sum = dates.slice(7,14).reduce((s,d)=>s+getVids(d),0);
+      const mtdSum   = mtdDates.reduce((s,d)=>s+getVids(d),0);
+      const mtdAvg   = mtdDates.length ? mtdSum/mtdDates.length : 0;
+      const mtdApproved = mtdDates.reduce((s,d)=>s+getSamp(d),0);
+      const lastMoSum = lastMoDates.length>0 ? lastMoDates.reduce((s,d)=>s+getVids(d),0) : null;
+      const status   = computeBrandVideoStatus(brand, dates, videoData);
+      return { brand, last7, last7sum, prev7sum, avg7d:last7sum/7, today:last7[0]||0, mtdSum, mtdAvg, mtdApproved, lastMoSum, status, pmId:brandMap[brand] };
+    }).sort((a,b)=>b.last7sum-a.last7sum);
+  }, [allBrands, dates, videoData, brandMap, mtdDates, lastMoDates]);
+
+  const dailyTotals = useMemo(() => dates.slice(0,7).map(d=>({ date:d.slice(5), total:(videoData[d]||[]).reduce((s,r)=>s+(r.new_videos||0),0) })), [dates, videoData]);
+  const todayTotal  = dailyTotals[0]?.total || 0;
+  const avg7d       = dailyTotals.length ? dailyTotals.reduce((s,d)=>s+d.total,0)/dailyTotals.length : 0;
+  const mtdPortfolioTotal = useMemo(()=>mtdDates.reduce((sum,d)=>(videoData[d]||[]).reduce((s,r)=>s+(r.new_videos||0),sum),0),[mtdDates,videoData]);
+  const mtdPortfolioAvg   = mtdDates.length ? mtdPortfolioTotal/mtdDates.length : 0;
+
+  const statusCounts = brandAnalysis.reduce((acc,b)=>{ acc[b.status]=(acc[b.status]||0)+1; return acc; }, {});
+  const filtered = brandAnalysis.filter(b=>(statusFilter==='all'||b.status===statusFilter)&&(pmFilter==='all'||b.pmId===pmFilter));
+
+  const goalPct   = Math.min(100,(todayTotal/VIDEO_GOAL)*100);
+  const goalColor = goalPct>=100?'#22c55e':goalPct>=70?'#4f8ef7':goalPct>=40?'#f59e0b':'#ef4444';
+  const chartMax  = Math.max(...dailyTotals.map(d=>d.total), VIDEO_GOAL, 1);
+
+  if (videoLoading && !allBrands.length) return (
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#334155' }}>
+      <Spinner size={24} /><span style={{ fontSize:'14px' }}>Loading video data…</span>
+    </div>
+  );
+
+  return (
+    <div className="fade-in">
+      <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'24px' }}>
+        <h2 style={{ fontSize:'20px', fontWeight:800, color:'#f1f5f9', letterSpacing:'-0.4px' }}>📹 Video Tracker</h2>
+        <span style={{ background:'#162040', color:'#4f8ef7', fontSize:'11px', fontWeight:700, padding:'2px 10px', borderRadius:'20px' }}>100 Videos / Day Goal</span>
+        {videoLoading && <span style={{ display:'flex', alignItems:'center', gap:'5px', fontSize:'12px', color:'#475569' }}><Spinner />…</span>}
+      </div>
+
+      <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:'16px', marginBottom:'24px', alignItems:'stretch' }}>
+        <div className="card" style={{ padding:'20px 24px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'8px', minWidth:'160px' }}>
+          <DonutProgress value={todayTotal} max={VIDEO_GOAL} color={goalColor} />
+          <div style={{ textAlign:'center' }}>
+            <div style={{ fontSize:'13px', fontWeight:700, color:'#f1f5f9' }}>Today's Videos</div>
+            <div style={{ fontSize:'11px', color:'#475569' }}>Goal: {VIDEO_GOAL}/day</div>
+          </div>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px' }}>
+          <StatCard label="Today"       value={todayTotal.toString()}      color={goalColor} icon="🎬" sub={`${goalPct.toFixed(0)}% of goal`} />
+          <StatCard label="7-Day Avg"   value={avg7d.toFixed(1)}           color="#4f8ef7"   icon="📈" sub="daily avg (videos)" />
+          <StatCard label="MTD Avg"     value={mtdPortfolioAvg.toFixed(1)} color="#a855f7"   icon="📅" sub={`${mtdDates.length}d elapsed · ${mtdPortfolioTotal} total`} />
+          <StatCard label="In Pipeline" value={(statusCounts.pipeline||0).toString()} color="#f59e0b" icon="🔄" sub="samples ready, no videos" />
+        </div>
+        <div className="card" style={{ padding:'16px 20px', minWidth:'260px' }}>
+          <div style={{ fontSize:'11px', fontWeight:700, color:'#334155', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'10px' }}>Last 7 Days Portfolio</div>
+          <div style={{ display:'flex', alignItems:'flex-end', gap:'6px', height:'60px' }}>
+            {dailyTotals.slice().reverse().map((d,i)=>{
+              const h=Math.max(2,(d.total/chartMax)*60), isToday=i===dailyTotals.length-1;
+              const col=d.total>=VIDEO_GOAL?'#22c55e':d.total>=VIDEO_GOAL*0.7?'#4f8ef7':'#f59e0b';
+              return (
+                <div key={d.date} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }}>
+                  <div style={{ width:'100%', height:`${h}px`, background:col, borderRadius:'3px 3px 0 0', opacity:isToday?1:0.6 }} title={`${d.date}: ${d.total}`} />
+                  <div style={{ fontSize:'9px', color:isToday?'#94a3b8':'#334155', whiteSpace:'nowrap' }}>{d.date}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'8px' }}>
+            <div style={{ width:'16px', height:'2px', background:'#4f8ef7', borderRadius:'1px' }} />
+            <span style={{ fontSize:'10px', color:'#475569' }}>100/day goal</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'16px', flexWrap:'wrap' }}>
+        <span style={{ fontSize:'11px', color:'#334155', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px' }}>Filter:</span>
+        {[['all','All Brands',brandAnalysis.length],...Object.entries(STATUS_CONFIG).map(([k,v])=>[k,v.label,statusCounts[k]||0])].map(([v,l,cnt])=>(
+          <button key={v} onClick={()=>setStatusFilter(v)} style={{ padding:'5px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:statusFilter===v?700:500, cursor:'pointer', border:'none', background:statusFilter===v?(STATUS_CONFIG[v]?.bg||'#162040'):'transparent', color:statusFilter===v?(STATUS_CONFIG[v]?.color||'#4f8ef7'):'#475569', outline:statusFilter===v?`1px solid ${STATUS_CONFIG[v]?.color||'#4f8ef7'}33`:'1px solid #162040', transition:'all 0.15s' }}>{l} <span style={{opacity:0.7}}>({cnt})</span></button>
+        ))}
+        <div style={{ marginLeft:'auto' }}>
+          <select value={pmFilter} onChange={e=>setPmFilter(e.target.value)} style={{ background:'#0f1e35', border:'1px solid #162040', color:'#94a3b8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
+            <option value="all">All PMs</option>
+            {pms.map(pm=><option key={pm.id} value={pm.id}>{pm.name}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="card" style={{ overflow:'hidden' }}>
+        <div style={{ overflowX:'auto' }}>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
+            <thead>
+              <tr style={{ background:'#0a1427', borderBottom:'1px solid #162040' }}>
+                <Th label="#" />
+                <Th label="Brand" />
+                <Th label="PM" />
+                <Th label="Today" right />
+                <Th label="7D Avg" right />
+                <Th label="MTD Avg" right />
+                <Th label={lastMoLabel} right />
+                <Th label="Last 7 Days" />
+                <Th label="Status" />
+                <Th label="Sample Goal" />
+                <Th label="Approved MTD" right />
+                <Th label="Left" right />
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((b, idx) => {
+                const sc    = STATUS_CONFIG[b.status];
+                const pm    = pms.find(p=>p.id===b.pmId);
+                const goal  = parseInt(goals[b.brand]||0);
+                const left  = goal>0 ? goal - b.mtdApproved : null;
+                const leftColor = left===null?'':(left<=0?'#22c55e':left<goal*0.3?'#f59e0b':'#ef4444');
+                const lmDiff = (b.lastMoSum!=null&&b.mtdSum!=null) ? b.mtdSum - b.lastMoSum : null;
+                const lmColor= lmDiff===null?'#334155':lmDiff>0?'#22c55e':lmDiff<0?'#ef4444':'#64748b';
+                return (
+                  <tr key={b.brand} className="hover-row" style={{ borderBottom:'1px solid #0e1c2f' }}>
+                    <td style={{ padding:'10px 8px 10px 14px', color:'#334155', fontSize:'12px', width:'32px' }}>{idx+1}</td>
+                    <td style={{ padding:'10px 14px', color:'#f1f5f9', fontWeight:600, whiteSpace:'nowrap' }}>{b.brand}</td>
+                    <td style={{ padding:'10px 14px' }}>
+                      {pm ? (
+                        <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                          <div style={{ width:'20px', height:'20px', borderRadius:'5px', background:`${pm.color}22`, border:`1px solid ${pm.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:700, color:pm.color }}>{initials(pm.name)}</div>
+                          <span style={{ color:'#94a3b8', fontSize:'12px' }}>{pm.name}</span>
+                        </div>
+                      ) : <span style={{ color:'#334155', fontSize:'12px' }}>—</span>}
+                    </td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.today>0?'#f1f5f9':'#334155', fontWeight:b.today>0?700:400 }}>{b.today||'—'}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#94a3b8' }}>{b.avg7d.toFixed(1)}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>
+                      <span style={{ color:'#a855f7', fontWeight:600 }}>{b.mtdAvg.toFixed(1)}</span>
+                      <span style={{ color:'#334155', fontSize:'10px', marginLeft:'3px' }}>/d</span>
+                    </td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>
+                      {b.lastMoSum!=null ? (
+                        <span style={{ color:lmColor, fontWeight:600 }}>
+                          {b.lastMoSum}
+                          {lmDiff!==null&&lmDiff!==0 && <span style={{ fontSize:'10px', marginLeft:'4px', fontWeight:700 }}>{lmDiff>0?'▲':'▼'}{Math.abs(lmDiff)}</span>}
+                        </span>
+                      ) : <span style={{ color:'#1e3058' }}>—</span>}
+                    </td>
+                    <td style={{ padding:'10px 14px' }}><Sparkline data={b.last7} /></td>
+                    <td style={{ padding:'10px 14px' }}>
+                      <span className="status-badge" style={{ background:sc.bg, color:sc.color }}>{sc.icon} {sc.label}</span>
+                    </td>
+                    <td style={{ padding:'10px 14px', minWidth:'95px' }}>
+                      <input type="number" min="0" value={goals[b.brand]||''} onChange={e=>updateGoal(b.brand,e.target.value)} placeholder="Set goal"
+                        style={{ width:'80px', background:'#0f1e35', border:'1px solid #1e3058', color:'#94a3b8', padding:'3px 7px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }} />
+                    </td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.mtdApproved>0?'#f59e0b':'#334155', fontWeight:b.mtdApproved>0?700:400 }}>{b.mtdApproved||'—'}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>
+                      {left!==null ? <span style={{ color:leftColor, fontWeight:700 }}>{left<=0?'✓ Done':left}</span> : <span style={{ color:'#334155' }}>—</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length===0 && <tr><td colSpan={12} style={{ padding:'40px', textAlign:'center', color:'#334155' }}>No brands match the current filter.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ padding:'10px 16px', borderTop:'1px solid #0e1c2f', fontSize:'11px', color:'#334155', display:'flex', gap:'16px', flexWrap:'wrap' }}>
+          {Object.entries(STATUS_CONFIG).map(([k,v])=>(
+            <span key={k}><span style={{color:v.color}}>{v.icon} {v.label}</span>: {k==='active'?'posting recently':k==='dipped'?'dropped >50% vs prior week':k==='pipeline'?'samples approved, no videos yet':'no activity in 14 days'}</span>
+          ))}
+          <span style={{ marginLeft:'auto', color:'#1e3058' }}>Last Mo. = {lastMoLabel} · MTD Avg = daily rate this month · Left = Goal − Approved MTD</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SETTINGS MODAL
+// ════════════════════════════════════════════════════════════════════════════
+function SettingsModal({ pms, setPms, brandList, brandMap, assignBrand, onClose }) {
+  const [tab, setTab]     = useState('brands');
+  const [newName, setNewName] = useState('');
+  const [search, setSearch]   = useState('');
+  const addPm = () => { if (!newName.trim()) return; setPms(prev=>[...prev,{id:'pm_'+Date.now(),name:newName.trim(),color:PM_COLORS[prev.length%PM_COLORS.length]}]); setNewName(''); };
+  const filtered = brandList.filter(b=>b.toLowerCase().includes(search.toLowerCase()));
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.8)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100 }}
+      onClick={e=>{ if(e.target===e.currentTarget) onClose(); }}>
+      <div style={{ background:'#0c1628', border:'1px solid #162040', borderRadius:'14px', width:'600px', maxHeight:'84vh', display:'flex', flexDirection:'column', boxShadow:'0 24px 64px rgba(0,0,0,0.6)' }}>
+        <div style={{ padding:'18px 22px', borderBottom:'1px solid #162040', display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0 }}>
+          <span style={{ fontWeight:800, fontSize:'15px', color:'#f1f5f9' }}>⚙ Settings</span>
+          <button onClick={onClose} style={{ background:'#0f1e35', border:'1px solid #162040', color:'#64748b', cursor:'pointer', fontSize:'14px', width:'28px', height:'28px', borderRadius:'7px', lineHeight:1, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+        </div>
+        <div style={{ display:'flex', borderBottom:'1px solid #162040', flexShrink:0 }}>
+          {[['brands','Assign Brands'],['pms','Manage PMs']].map(([t,l])=>(
+            <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'11px', background:tab===t?'#0f1e35':'transparent', border:'none', borderBottom:tab===t?'2px solid #4f8ef7':'2px solid transparent', color:tab===t?'#f1f5f9':'#64748b', cursor:'pointer', fontSize:'13px', fontWeight:tab===t?700:400 }}>{l}</button>
+          ))}
+        </div>
+        <div style={{ flex:1, overflowY:'auto', padding:'18px' }}>
+          {tab==='brands' && (
+            <div>
+              <div style={{ fontSize:'12px', color:'#475569', marginBottom:'12px' }}>Assign each brand to a PM. Changes save automatically.</div>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍  Search brands…"
+                style={{ width:'100%', background:'#0f1e35', border:'1px solid #162040', color:'#94a3b8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px', marginBottom:'12px' }} />
+              {filtered.map(brand=>(
+                <div key={brand} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'7px 0', borderBottom:'1px solid #0f1e35' }}>
+                  <span style={{ flex:1, color:'#f1f5f9', fontSize:'13px' }}>{brand}</span>
+                  <select value={brandMap[brand]||''} onChange={e=>assignBrand(brand,e.target.value)}
+                    style={{ background:'#0f1e35', border:'1px solid #162040', color:'#94a3b8', padding:'4px 8px', borderRadius:'5px', fontSize:'12px', cursor:'pointer' }}>
+                    <option value="">— Unassigned —</option>
+                    {pms.map(pm=><option key={pm.id} value={pm.id}>{pm.name}</option>)}
+                  </select>
+                </div>
+              ))}
+              {filtered.length===0 && <div style={{ color:'#334155', textAlign:'center', padding:'20px' }}>No brands match.</div>}
+            </div>
+          )}
+          {tab==='pms' && (
+            <div>
+              <div style={{ display:'flex', gap:'8px', marginBottom:'18px' }}>
+                <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addPm()} placeholder="New PM name…"
+                  style={{ flex:1, background:'#0f1e35', border:'1px solid #162040', color:'#94a3b8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px' }} />
+                <button onClick={addPm} style={{ background:'#1d4ed8', border:'none', color:'#fff', padding:'8px 16px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', fontWeight:700 }}>+ Add PM</button>
+              </div>
+              {pms.map(pm=>(
+                <div key={pm.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'8px 0', borderBottom:'1px solid #0f1e35' }}>
+                  <div style={{ width:'28px', height:'28px', borderRadius:'7px', background:`${pm.color}22`, border:`1px solid ${pm.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:800, color:pm.color, flexShrink:0 }}>{initials(pm.name)}</div>
+                  <input value={pm.name} onChange={e=>setPms(prev=>prev.map(p=>p.id===pm.id?{...p,name:e.target.value}:p))}
+                    style={{ flex:1, background:'transparent', border:'1px solid transparent', color:'#f1f5f9', padding:'5px 8px', borderRadius:'5px', fontSize:'13px' }}
+                    onFocus={e=>e.target.style.borderColor='#162040'} onBlur={e=>e.target.style.borderColor='transparent'} />
+                  <button onClick={()=>setPms(prev=>prev.filter(p=>p.id!==pm.id))}
+                    style={{ background:'transparent', border:'1px solid #ef4444', color:'#ef4444', padding:'4px 10px', borderRadius:'5px', cursor:'pointer', fontSize:'12px' }}>Remove</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SMALL COMPONENTS
+// ════════════════════════════════════════════════════════════════════════════
+function StatCard({ label, value, sub, color, icon, bar }) {
+  return (
+    <div style={{ background:'#0c1628', border:'1px solid #162040', borderRadius:'11px', padding:'16px', position:'relative', overflow:'hidden' }}>
+      <div style={{ position:'absolute', top:0, left:0, width:'3px', height:'100%', background:color||'#4f8ef7', borderRadius:'11px 0 0 11px' }} />
+      <div style={{ paddingLeft:'4px' }}>
+        <div style={{ fontSize:'10px', color:'#475569', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'7px', display:'flex', alignItems:'center', gap:'4px' }}>{icon&&<span>{icon}</span>}{label}</div>
+        <div style={{ fontSize:'22px', fontWeight:800, color:color||'#f1f5f9', lineHeight:1, letterSpacing:'-0.5px' }}>{value}</div>
+        {sub && <div style={{ fontSize:'11px', color:'#475569', marginTop:'4px' }}>{sub}</div>}
+        {bar!=null && <div style={{ marginTop:'10px', background:'#0f1e35', borderRadius:'4px', height:'4px' }}><div style={{ height:'100%', borderRadius:'4px', width:`${bar}%`, background:color||'#4f8ef7', transition:'width 0.3s' }} /></div>}
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value, color }) {
+  return (
+    <div style={{ background:'#0a1427', borderRadius:'7px', padding:'8px 10px' }}>
+      <div style={{ fontSize:'10px', color:'#334155', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.5px' }}>{label}</div>
+      <div style={{ fontSize:'15px', fontWeight:800, color }}>{value}</div>
+    </div>
+  );
+}
+
+function Th({ label, col, sortBy, sortDir, onSort, right }) {
+  const active = col && sortBy===col;
+  return (
+    <th onClick={()=>col&&onSort(col)} style={{ padding:'10px 14px', textAlign:right?'right':'left', cursor:col?'pointer':'default',
+      color:active?'#4f8ef7':'#334155', fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.6px', whiteSpace:'nowrap', userSelect:'none' }}>
+      {label}{active?(sortDir==='asc'?' ↑':' ↓'):''}
+    </th>
+  );
+}
+
+function Sparkline({ data, height=28, width=72 }) {
+  if (!data||data.every(v=>v===0)) return <span style={{ color:'#334155', fontSize:'11px' }}>no activity</span>;
+  const max = Math.max(...data, 1);
+  const pts = data.map((v,i) => `${(i/(data.length-1))*width},${height-(v/max)*(height-2)}`).join(' ');
+  const color = data[0] > data[data.length-1]*0.5 ? '#22c55e' : '#ef4444';
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ overflow:'visible' }}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={pts.split(' ')[0].split(',')[0]} cy={pts.split(' ')[0].split(',')[1]} r="2.5" fill={color} />
+    </svg>
+  );
+}
+
+function DonutProgress({ value, max, color }) {
+  const pct = Math.min(value/max, 1);
+  const r=30, cx=40, cy=40, circ=2*Math.PI*r;
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#162040" strokeWidth="8" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="8"
+        strokeDasharray={circ} strokeDashoffset={circ*(1-pct)}
+        strokeLinecap="round" transform="rotate(-90 40 40)" style={{ transition:'stroke-dashoffset 0.5s ease' }} />
+      <text x={cx} y={cy-4} textAnchor="middle" fill={color} fontSize="16" fontWeight="800">{value}</text>
+      <text x={cx} y={cy+10} textAnchor="middle" fill="#475569" fontSize="10">/{max}</text>
+    </svg>
+  );
+}
+
+function Spinner({ size=12 }) {
+  const [r, setR] = useState(0);
+  useEffect(() => { const id = setInterval(()=>setR(v=>(v+30)%360),100); return ()=>clearInterval(id); }, []);
+  return <svg width={size} height={size} viewBox="0 0 12 12" style={{ flexShrink:0 }}><circle cx="6" cy="6" r="4" fill="none" stroke="#334155" strokeWidth="2" strokeDasharray="12 6" transform={`rotate(${r} 6 6)`} /></svg>;
+}
+
+function EmptyState() {
+  return (
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#334155' }}>
+      <div style={{ fontSize:'48px' }}>👈</div>
+      <div style={{ fontSize:'16px', fontWeight:700, color:'#475569' }}>Select a PM to view their brands</div>
+      <div style={{ fontSize:'13px' }}>Or switch to <strong style={{ color:'#64748b' }}>Manager View</strong> for the full team overview</div>
+    </div>
+  );
+}
+
+function CorsError() {
+  return (
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', maxWidth:'520px', margin:'0 auto', textAlign:'center' }}>
+      <div style={{ fontSize:'44px' }}>🚫</div>
+      <div style={{ fontSize:'16px', fontWeight:800, color:'#ef4444' }}>API Access Blocked</div>
+      <div style={{ fontSize:'13px', color:'#475569', lineHeight:1.7 }}>The n8n proxy workflows (<code style={{ background:'#0f1e35', padding:'1px 5px', borderRadius:'3px', color:'#a855f7' }}>tts-proxy-dates</code> / <code style={{ background:'#0f1e35', padding:'1px 5px', borderRadius:'3px', color:'#a855f7' }}>tts-proxy-report</code>) may be inactive. Check that both workflows are Active in n8n.</div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
