@@ -114,6 +114,29 @@ const DEFAULT_BRAND_MAP = {
   "Barimelts":"tanishk","Dr. Tobias":"tanishk","Seeking Health":"tanishk",
 };
 
+
+// ════════════════════════════════════════════════════════════════════════════
+// DEFAULT SAMPLE GOALS (keyed by exact API brand name)
+// ════════════════════════════════════════════════════════════════════════════
+const DEFAULT_GOALS = {
+  "BallBoyz Soap":500,"Barimelts":750,"Better Dog Supplements":500,
+  "Brutus Broth":1200,"CeraVe":3800,"Coco&Eve":800,"CureHydration":2000,
+  "Davids Premium Oral Care":500,"Dr. Tobias":750,"Fazit":2100,
+  "Fix-a-Flat":500,"Flora Health Shop":600,"GAT Sport USA":2000,
+  "HALEYS Beauty":700,"Heatonist - Stay Spicy":700,"Hims & Hers":500,
+  "ILIA Beauty":970,"Integrative Therapeutics":1000,"Kiyomi Skin":700,
+  "Life Extension Supplements":1200,"Megababe":3000,"MegaFood Shop":3000,
+  "Metagenics":1200,"Moncho Moreno":1000,"MuscleTech":2350,
+  "Natural Factors":1000,"NaturalSlimUSA":1500,"New Chapter Inc":3400,
+  "NOW":1500,"OLLY Wellness":2700,"One A Day Shop":1500,
+  "Optimum Nutrition Shop":500,"PBfit":1500,"Philips Shop US":75,
+  "Seeking Health":750,"Setex":500,"SIXSTAR PRO":1000,"skinfix":2500,
+  "SmartMouth":2000,"SuavecitoPomade":4200,"Ulta Beauty":850,
+  "Uqora Official":900,"Urban Decay Cosmetics":3000,"Vital Proteins Shop":1035,
+  "Weider Global Nutrition":1500,"Wiley's Finest Shop":2000,
+  "Winky Lux":1100,"youtheory":3000,
+};
+
 // ════════════════════════════════════════════════════════════════════════════
 // APP
 // ════════════════════════════════════════════════════════════════════════════
@@ -125,7 +148,7 @@ function App() {
   const [apiError, setApiError]     = useState('');
   const [pms, setPms]               = useState(() => lsGet('tts_pms', DEFAULT_PMS));
   const [brandMap, setBrandMap]     = useState(() => lsGet('tts_brand_map', DEFAULT_BRAND_MAP));
-  const [goals, setGoals]           = useState(() => lsGet('tts_goals', {}));
+  const [goals, setGoals]           = useState(() => ({ ...DEFAULT_GOALS, ...lsGet('tts_goals', {}) }));
   const [selectedPm, setSelectedPm] = useState(null);
   const [view, setView]             = useState('pm');  // 'pm' | 'manager' | 'video'
   const [showSettings, setShowSettings] = useState(false);
