@@ -543,6 +543,9 @@ function computeBrandVideoStatus(brand, dates, videoData) {
 function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, updateGoal }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [pmFilter, setPmFilter]         = useState('all');
+  const [vtSort, setVtSort]             = useState('avg7d');
+  const [vtDir, setVtDir]               = useState('desc');
+  const handleVtSort = col => { if(vtSort===col){setVtDir(d=>d==='desc'?'asc':'desc');}else{setVtSort(col);setVtDir('desc');} };
 
   const today        = dates[0] || '';
   const currentMonth = today.slice(0,7);
@@ -587,7 +590,20 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
   const mtdPortfolioAvg   = mtdDates.length ? mtdPortfolioTotal/mtdDates.length : 0;
 
   const statusCounts = brandAnalysis.reduce((acc,b)=>{ acc[b.status]=(acc[b.status]||0)+1; return acc; }, {});
-  const filtered = brandAnalysis.filter(b=>(statusFilter==='all'||b.status===statusFilter)&&(pmFilter==='all'||b.pmId===pmFilter));
+  const filtered = useMemo(() => {
+    const arr = brandAnalysis.filter(b=>(statusFilter==='all'||b.status===statusFilter)&&(pmFilter==='all'||b.pmId===pmFilter));
+    return [...arr].sort((a,b)=>{
+      let va,vb;
+      if      (vtSort==='today')    { va=a.today;         vb=b.today; }
+      else if (vtSort==='avg7d')    { va=a.avg7d;         vb=b.avg7d; }
+      else if (vtSort==='mtdAvg')   { va=a.mtdAvg;        vb=b.mtdAvg; }
+      else if (vtSort==='lastMo')   { va=a.lastMoSum??-1; vb=b.lastMoSum??-1; }
+      else if (vtSort==='approved') { va=a.mtdApproved;   vb=b.mtdApproved; }
+      else if (vtSort==='left')     { const ga=parseInt(goals[a.brand]||0),gb=parseInt(goals[b.brand]||0); va=ga>0?ga-a.mtdApproved:Infinity; vb=gb>0?gb-b.mtdApproved:Infinity; }
+      else                          { va=a.avg7d;         vb=b.avg7d; }
+      return vtDir==='asc'?va-vb:vb-va;
+    });
+  }, [brandAnalysis, statusFilter, pmFilter, vtSort, vtDir, goals]);
 
   const goalPct   = Math.min(100,(todayTotal/VIDEO_GOAL)*100);
   const goalColor = goalPct>=100?'#22c55e':goalPct>=70?'#4f8ef7':goalPct>=40?'#f59e0b':'#ef4444';
@@ -663,15 +679,15 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
                 <Th label="#" />
                 <Th label="Brand" />
                 <Th label="PM" />
-                <Th label="Today" right />
-                <Th label="7D Avg" right />
-                <Th label="MTD Avg" right />
-                <Th label={lastMoLabel} right />
+                <Th label="Today"        col="today"    sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
+                <Th label="7D Avg"       col="avg7d"    sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
+                <Th label="MTD Avg"      col="mtdAvg"   sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
+                <Th label={lastMoLabel}  col="lastMo"   sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
                 <Th label="Last 7 Days" />
                 <Th label="Status" />
                 <Th label="Sample Goal" />
-                <Th label="Approved MTD" right />
-                <Th label="Left" right />
+                <Th label="Approved MTD" col="approved" sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
+                <Th label="Left"         col="left"     sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
               </tr>
             </thead>
             <tbody>
