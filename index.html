@@ -9,24 +9,26 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #f0effe; color: #4a4870; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; height: 100vh; overflow: hidden; }
+    body { background: #08080f; color: #9896b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; height: 100vh; overflow: hidden; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cfc9f5; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #2a2a45; border-radius: 10px; }
     input, select, button { font-family: inherit; }
-    input:focus, select:focus { outline: 2px solid #5b8dee; outline-offset: -1px; }
-    button:focus-visible { outline: 2px solid #5b8dee; outline-offset: 2px; }
+    input:focus, select:focus { outline: 2px solid #7c6af5; outline-offset: -1px; }
+    button:focus-visible { outline: 2px solid #7c6af5; outline-offset: 2px; }
     .fade-in { animation: fadeIn 0.2s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    .card { background: #ffffff; border: 1px solid #e4e0fa; border-radius: 12px; box-shadow: 0 1px 5px rgba(91,78,200,0.07); }
+    .card { background: #111120; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
     .hover-row { transition: background 0.1s; }
-    .hover-row:hover { background: rgba(91,141,238,0.05) !important; }
+    .hover-row:hover { background: rgba(124,106,245,0.06) !important; }
     .pm-item { cursor: pointer; border-left: 3px solid transparent; transition: background 0.1s; padding: 10px 16px; }
-    .pm-item:hover { background: #f3f1ff; }
-    .pm-item.active { background: #ede9ff; }
+    .pm-item:hover { background: rgba(124,106,245,0.08); }
+    .pm-item.active { background: rgba(124,106,245,0.15); }
     .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-    .btn-download { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: linear-gradient(135deg,#5b8dee,#8b6ee8); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: opacity 0.15s, transform 0.15s; letter-spacing: 0.2px; }
-    .btn-download:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-download { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: linear-gradient(135deg,#5b8dee,#7c6af5); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: opacity 0.15s, transform 0.15s; letter-spacing: 0.2px; box-shadow: 0 2px 10px rgba(124,106,245,0.3); }
+    .btn-download:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,106,245,0.4); }
+    input[type=number], input[type=text], select { background: #1a1a2e !important; border: 1px solid rgba(255,255,255,0.08) !important; color: #c8c6e4 !important; }
+    option { background: #1a1a2e; color: #c8c6e4; }
   </style>
 </head>
 <body>
@@ -81,7 +83,7 @@ const fmt$   = v => (v==null||isNaN(v)) ? '—' : '$'+Number(v).toLocaleString('
 const fmtN   = v => (v==null||isNaN(v)) ? '—' : Number(v).toLocaleString();
 const fmtPct = v => (v==null||isNaN(v)) ? '—' : (v*100).toFixed(1)+'%';
 const fmtDod = v => { if (v==null||isNaN(v)) return '—'; const p=(v*100).toFixed(1); return (v>0?'+':'')+p+'%'; };
-const dodColor = v => !v&&v!==0 ? '#8e8caa' : v>0 ? '#3dba7c' : v<0 ? '#e85c5c' : '#8e8caa';
+const dodColor = v => !v&&v!==0 ? '#52507a' : v>0 ? '#3dba7c' : v<0 ? '#e85c5c' : '#52507a';
 const initials = name => name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 
 // ─── Default PMs ─────────────────────────────────────────────────────────────
@@ -287,41 +289,41 @@ function Header({ dates, date, setDate, view, setView, period, setPeriod, loadin
   const NavBtn = ({ v, label }) => (
     <button onClick={() => setView(v)} style={{
       padding:'6px 16px',
-      background: view===v ? 'rgba(91,141,238,0.12)' : 'transparent',
-      color: view===v ? '#5b8dee' : '#8e8caa',
+      background: view===v ? 'rgba(124,106,245,0.15)' : 'transparent',
+      color: view===v ? '#a394f8' : '#52507a',
       border:'none', cursor:'pointer', fontSize:'13px',
       fontWeight: view===v ? 700 : 500, borderRadius:'6px', transition:'all 0.15s', whiteSpace:'nowrap'
     }}>{label}</button>
   );
   return (
-    <header style={{ background:'#ffffff', borderBottom:'1px solid #e4e0fa', padding:'0 20px', display:'flex', alignItems:'center', gap:'8px', height:'54px', flexShrink:0, overflowX:'auto', boxShadow:'0 1px 4px rgba(91,78,200,0.06)' }}>
+    <header style={{ background:'#0c0c18', borderBottom:'1px solid rgba(255,255,255,0.05)', padding:'0 20px', display:'flex', alignItems:'center', gap:'8px', height:'54px', flexShrink:0, overflowX:'auto', boxShadow:'0 1px 12px rgba(0,0,0,0.6)' }}>
       <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0, marginRight:'8px' }}>
         <div style={{ width:'28px', height:'28px', borderRadius:'8px', background:'linear-gradient(135deg,#5b8dee,#8b6ee8)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px' }}>📊</div>
-        <span style={{ fontWeight:800, fontSize:'15px', color:'#1a1835', letterSpacing:'-0.3px' }}>TTS Ops</span>
+        <span style={{ fontWeight:800, fontSize:'15px', color:'#e8e6f4', letterSpacing:'-0.3px' }}>TTS Ops</span>
       </div>
-      <div style={{ width:'1px', height:'20px', background:'#e4e0fa', flexShrink:0, margin:'0 4px' }} />
+      <div style={{ width:'1px', height:'20px', background:'rgba(255,255,255,0.07)', flexShrink:0, margin:'0 4px' }} />
       <div style={{ display:'flex', gap:'2px', flexShrink:0 }}>
         <NavBtn v="pm"      label="PM View" />
         <NavBtn v="manager" label="Manager" />
         <NavBtn v="video"   label="📹 Video Tracker" />
       </div>
-      <div style={{ width:'1px', height:'20px', background:'#e4e0fa', flexShrink:0, margin:'0 4px' }} />
+      <div style={{ width:'1px', height:'20px', background:'rgba(255,255,255,0.07)', flexShrink:0, margin:'0 4px' }} />
       {view !== 'video' && <>
         {period === 'daily' && (
-          <select value={date} onChange={e=>setDate(e.target.value)} style={{ background:'#f4f2ff', border:'1px solid #e4e0fa', color:'#4a4870', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer', flexShrink:0 }}>
+          <select value={date} onChange={e=>setDate(e.target.value)} style={{ background:'#13131f', border:'1px solid rgba(255,255,255,0.07)', color:'#c8c6e4', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer', flexShrink:0 }}>
             {dates.map(d=><option key={d} value={d}>{d}</option>)}
           </select>
         )}
-        <div style={{ display:'flex', background:'#f4f2ff', border:'1px solid #e4e0fa', borderRadius:'7px', overflow:'hidden', flexShrink:0 }}>
+        <div style={{ display:'flex', background:'#13131f', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'7px', overflow:'hidden', flexShrink:0 }}>
           {PERIODS.map(([v,l]) => (
-            <button key={v} onClick={()=>setPeriod(v)} style={{ padding:'5px 11px', background:period===v?'#5b8dee':'transparent', color:period===v?'#fff':'#8e8caa', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:period===v?700:400, transition:'all 0.15s', whiteSpace:'nowrap' }}>{l}</button>
+            <button key={v} onClick={()=>setPeriod(v)} style={{ padding:'5px 11px', background:period===v?'#7c6af5':'transparent', color:period===v?'#fff':'#52507a', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:period===v?700:400, transition:'all 0.15s', whiteSpace:'nowrap' }}>{l}</button>
           ))}
         </div>
       </>}
       <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'10px', flexShrink:0 }}>
-        {loading && <span style={{ color:'#b0adca', fontSize:'12px', display:'flex', alignItems:'center', gap:'5px' }}><Spinner />Loading...</span>}
-        <button onClick={onSettings} style={{ background:'#f4f2ff', border:'1px solid #e4e0fa', color:'#7a789a', padding:'5px 13px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', transition:'all 0.15s' }}
-          onMouseEnter={e=>e.target.style.color='#1a1835'} onMouseLeave={e=>e.target.style.color='#7a789a'}>
+        {loading && <span style={{ color:'#3d3b5c', fontSize:'12px', display:'flex', alignItems:'center', gap:'5px' }}><Spinner />Loading...</span>}
+        <button onClick={onSettings} style={{ background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#52507a', padding:'5px 13px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', transition:'all 0.15s' }}
+          onMouseEnter={e=>e.target.style.color='#e8e6f4'} onMouseLeave={e=>e.target.style.color='#52507a'}>
           ⚙ Settings
         </button>
       </div>
@@ -334,8 +336,8 @@ function Header({ dates, date, setDate, view, setView, period, setPeriod, loadin
 // ════════════════════════════════════════════════════════════════════════════
 function Sidebar({ pms, selectedPm, setSelectedPm, getPmStats, unassignedCount }) {
   return (
-    <aside style={{ width:'220px', background:'#faf8ff', borderRight:'1px solid #e4e0fa', overflowY:'auto', flexShrink:0 }}>
-      <div style={{ padding:'14px 16px 8px', fontSize:'10px', fontWeight:700, color:'#b0adca', textTransform:'uppercase', letterSpacing:'1px' }}>Project Managers</div>
+    <aside style={{ width:'220px', background:'#0a0a16', borderRight:'1px solid rgba(255,255,255,0.05)', overflowY:'auto', flexShrink:0 }}>
+      <div style={{ padding:'14px 16px 8px', fontSize:'10px', fontWeight:700, color:'#3d3b5c', textTransform:'uppercase', letterSpacing:'1px' }}>Project Managers</div>
       {pms.map(pm => {
         const s = getPmStats(pm.id);
         const active = selectedPm?.id === pm.id;
@@ -344,20 +346,20 @@ function Sidebar({ pms, selectedPm, setSelectedPm, getPmStats, unassignedCount }
             <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
               <div style={{ width:'30px', height:'30px', borderRadius:'8px', background:`${pm.color}22`, border:`1px solid ${pm.color}55`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:700, color:pm.color, flexShrink:0 }}>{initials(pm.name)}</div>
               <div>
-                <div style={{ fontWeight:600, fontSize:'13px', color: active?'#1a1835':'#3a3760', lineHeight:1.2 }}>{pm.name}</div>
-                <div style={{ fontSize:'11px', color:'#b0adca', marginTop:'1px' }}>{s.brands} brands · {fmt$(s.gmv)}</div>
+                <div style={{ fontWeight:600, fontSize:'13px', color: active?'#e8e6f4':'#d0cef4', lineHeight:1.2 }}>{pm.name}</div>
+                <div style={{ fontSize:'11px', color:'#3d3b5c', marginTop:'1px' }}>{s.brands} brands · {fmt$(s.gmv)}</div>
               </div>
             </div>
           </div>
         );
       })}
       {unassignedCount > 0 && (
-        <div className={`pm-item${selectedPm?.id==='__unassigned'?' active':''}`} onClick={()=>setSelectedPm({id:'__unassigned',name:'Unassigned',color:'#b0adca'})} style={{ marginTop:'8px', borderTop:'1px solid #ede9ff', borderLeftColor: selectedPm?.id==='__unassigned'?'#b0adca':'transparent' }}>
+        <div className={`pm-item${selectedPm?.id==='__unassigned'?' active':''}`} onClick={()=>setSelectedPm({id:'__unassigned',name:'Unassigned',color:'#3d3b5c'})} style={{ marginTop:'8px', borderTop:'1px solid rgba(255,255,255,0.05)', borderLeftColor: selectedPm?.id==='__unassigned'?'#3d3b5c':'transparent' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-            <div style={{ width:'30px', height:'30px', borderRadius:'8px', background:'#f4f2ff', border:'1px solid #e4e0fa', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:700, color:'#b0adca' }}>?</div>
+            <div style={{ width:'30px', height:'30px', borderRadius:'8px', background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:700, color:'#3d3b5c' }}>?</div>
             <div>
-              <div style={{ fontWeight:600, fontSize:'13px', color:'#b0adca' }}>Unassigned</div>
-              <div style={{ fontSize:'11px', color:'#ccc9e8' }}>{unassignedCount} brands</div>
+              <div style={{ fontWeight:600, fontSize:'13px', color:'#3d3b5c' }}>Unassigned</div>
+              <div style={{ fontSize:'11px', color:'#2a2a45' }}>{unassignedCount} brands</div>
             </div>
           </div>
         </div>
@@ -376,8 +378,8 @@ function PMView({ pm, brands, byBrand, goals, updateGoal, sortBy, sortDir, handl
       <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'24px' }}>
         <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:`${pm.color}22`, border:`1px solid ${pm.color}55`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', fontWeight:800, color:pm.color }}>{initials(pm.name)}</div>
         <div>
-          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#1a1835', letterSpacing:'-0.4px' }}>{pm.name}</h2>
-          <div style={{ fontSize:'12px', color:'#8e8caa' }}>{brands.length} brands · {PERIOD_LABEL[period]}</div>
+          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#e8e6f4', letterSpacing:'-0.4px' }}>{pm.name}</h2>
+          <div style={{ fontSize:'12px', color:'#52507a' }}>{brands.length} brands · {PERIOD_LABEL[period]}</div>
         </div>
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:'12px', marginBottom:'28px' }}>
@@ -391,7 +393,7 @@ function PMView({ pm, brands, byBrand, goals, updateGoal, sortBy, sortDir, handl
         <div style={{ overflowX:'auto' }}>
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
             <thead>
-              <tr style={{ background:'#f7f5ff', borderBottom:'1px solid #e4e0fa' }}>
+              <tr style={{ background:'#13131f', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
                 <Th label="Brand" />
                 <Th label="Videos"    col="videos"   sortBy={sortBy} sortDir={sortDir} onSort={handleSort} right />
                 {period==='daily' && <Th label="DoD%" col="dod" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} right />}
@@ -410,8 +412,8 @@ function PMView({ pm, brands, byBrand, goals, updateGoal, sortBy, sortDir, handl
                 const bc = pct==null?'':pct>=100?'#3dba7c':pct>=60?'#f0a03a':'#e85c5c';
                 return (
                   <tr key={brand} className="hover-row" style={{ borderBottom:'1px solid #f2f0fb', background:'transparent' }}>
-                    <td style={{ padding:'10px 14px', color:'#1a1835', fontWeight:600, whiteSpace:'nowrap' }}>{brand}</td>
-                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#4a4870' }}>{fmtN(d?.new_videos)}</td>
+                    <td style={{ padding:'10px 14px', color:'#e8e6f4', fontWeight:600, whiteSpace:'nowrap' }}>{brand}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#9896b8' }}>{fmtN(d?.new_videos)}</td>
                     {period==='daily' && <td style={{ padding:'10px 14px', textAlign:'right', color:dodColor(d?.dod), fontWeight:700 }}>{fmtDod(d?.dod)}</td>}
                     <td style={{ padding:'10px 14px', textAlign:'right', color:'#3dba7c', fontWeight:700 }}>{fmt$(d?.gmv)}</td>
                     <td style={{ padding:'10px 14px', textAlign:'right' }}>{fmtN(d?.sample_request)}</td>
@@ -419,9 +421,9 @@ function PMView({ pm, brands, byBrand, goals, updateGoal, sortBy, sortDir, handl
                     <td style={{ padding:'10px 14px', minWidth:'190px' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:'7px' }}>
                         <input type="number" min="0" value={goals[brand]||''} onChange={e=>updateGoal(brand,e.target.value)} placeholder="Set goal"
-                          style={{ width:'68px', background:'#f4f2ff', border:'1px solid #e4e0fa', color:'#4a4870', padding:'3px 7px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }} />
+                          style={{ width:'68px', background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'3px 7px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }} />
                         {pct!==null && <>
-                          <div style={{ flex:1, background:'#f4f2ff', borderRadius:'4px', height:'5px', minWidth:'50px' }}>
+                          <div style={{ flex:1, background:'#1a1a2e', borderRadius:'4px', height:'5px', minWidth:'50px' }}>
                             <div style={{ height:'100%', borderRadius:'4px', width:`${pct}%`, background:bc, transition:'width 0.3s' }} />
                           </div>
                           <span style={{ fontSize:'11px', color:bc, minWidth:'32px', fontWeight:700 }}>{pct.toFixed(0)}%</span>
@@ -435,7 +437,7 @@ function PMView({ pm, brands, byBrand, goals, updateGoal, sortBy, sortDir, handl
                   </tr>
                 );
               })}
-              {brands.length===0 && <tr><td colSpan={11} style={{ padding:'40px', textAlign:'center', color:'#b0adca' }}>No brands assigned. Use ⚙ Settings → Assign Brands.</td></tr>}
+              {brands.length===0 && <tr><td colSpan={11} style={{ padding:'40px', textAlign:'center', color:'#3d3b5c' }}>No brands assigned. Use ⚙ Settings → Assign Brands.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -455,8 +457,8 @@ function ManagerView({ pms, getPmStats, getPmBrands, byBrand, goals, onDrillIn, 
     <div className="fade-in">
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'24px' }}>
         <div>
-          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#1a1835', letterSpacing:'-0.4px' }}>Manager Overview</h2>
-          <div style={{ fontSize:'12px', color:'#8e8caa', marginTop:'2px' }}>{PERIOD_LABEL[period]} · {pms.length} PMs · {pms.reduce((a,pm)=>a+getPmStats(pm.id).brands,0)} brands</div>
+          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#e8e6f4', letterSpacing:'-0.4px' }}>Manager Overview</h2>
+          <div style={{ fontSize:'12px', color:'#52507a', marginTop:'2px' }}>{PERIOD_LABEL[period]} · {pms.length} PMs · {pms.reduce((a,pm)=>a+getPmStats(pm.id).brands,0)} brands</div>
         </div>
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:'12px', marginBottom:'32px' }}>
@@ -474,20 +476,20 @@ function ManagerView({ pms, getPmStats, getPmBrands, byBrand, goals, onDrillIn, 
           const bc = goalPct==null?'':goalPct>=100?'#3dba7c':goalPct>=60?'#f0a03a':'#e85c5c';
           const top = [...brands].sort((a,b)=>(byBrand[b]?.gmv||0)-(byBrand[a]?.gmv||0)).slice(0,3);
           return (
-            <div key={pm.id} onClick={()=>onDrillIn(pm)} style={{ background:'#ffffff', border:'1px solid #e4e0fa', borderTop:`3px solid ${pm.color}`, borderRadius:'12px', padding:'18px', cursor:'pointer', transition:'transform 0.15s, box-shadow 0.15s', boxShadow:'0 1px 5px rgba(91,78,200,0.07)' }}
-              onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow=`0 8px 24px rgba(91,78,200,0.13)`; }}
-              onMouseLeave={e=>{ e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='0 1px 5px rgba(91,78,200,0.07)'; }}>
+            <div key={pm.id} onClick={()=>onDrillIn(pm)} style={{ background:'#111120', border:'1px solid rgba(255,255,255,0.07)', borderTop:`3px solid ${pm.color}`, borderRadius:'12px', padding:'18px', cursor:'pointer', transition:'transform 0.15s, box-shadow 0.15s', boxShadow:'0 1px 5px rgba(0,0,0,0.4)' }}
+              onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow=`0 8px 24px rgba(124,106,245,0.25)`; }}
+              onMouseLeave={e=>{ e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='0 1px 5px rgba(0,0,0,0.4)'; }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'16px' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                   <div style={{ width:'34px', height:'34px', borderRadius:'9px', background:`${pm.color}22`, border:`1px solid ${pm.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:800, color:pm.color }}>{initials(pm.name)}</div>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:'15px', color:'#1a1835' }}>{pm.name}</div>
-                    <div style={{ fontSize:'11px', color:'#8e8caa' }}>{s.brands} brands</div>
+                    <div style={{ fontWeight:700, fontSize:'15px', color:'#e8e6f4' }}>{pm.name}</div>
+                    <div style={{ fontSize:'11px', color:'#52507a' }}>{s.brands} brands</div>
                   </div>
                 </div>
                 <div style={{ textAlign:'right' }}>
                   <div style={{ fontSize:'19px', fontWeight:800, color:'#3dba7c' }}>{fmt$(s.gmv)}</div>
-                  <div style={{ fontSize:'10px', color:'#8e8caa', textTransform:'uppercase', letterSpacing:'0.5px' }}>GMV</div>
+                  <div style={{ fontSize:'10px', color:'#52507a', textTransform:'uppercase', letterSpacing:'0.5px' }}>GMV</div>
                 </div>
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'10px', marginBottom:'14px' }}>
@@ -497,15 +499,15 @@ function ManagerView({ pms, getPmStats, getPmBrands, byBrand, goals, onDrillIn, 
               </div>
               {goalPct!==null && (
                 <div style={{ marginBottom:'12px' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', color:'#8e8caa', marginBottom:'5px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', color:'#52507a', marginBottom:'5px' }}>
                     <span>Sample Goal</span><span style={{ color:bc, fontWeight:700 }}>{goalPct.toFixed(0)}%</span>
                   </div>
-                  <div style={{ background:'#f4f2ff', borderRadius:'4px', height:'4px' }}>
+                  <div style={{ background:'#1a1a2e', borderRadius:'4px', height:'4px' }}>
                     <div style={{ height:'100%', borderRadius:'4px', width:`${goalPct}%`, background:bc, transition:'width 0.3s' }} />
                   </div>
                 </div>
               )}
-              {top.length>0 && <div style={{ fontSize:'11px', color:'#b0adca', borderTop:'1px solid #f2f0fb', paddingTop:'10px' }}>Top: {top.join(' · ')}</div>}
+              {top.length>0 && <div style={{ fontSize:'11px', color:'#3d3b5c', borderTop:'1px solid #f2f0fb', paddingTop:'10px' }}>Top: {top.join(' · ')}</div>}
             </div>
           );
         })}
@@ -518,10 +520,10 @@ function ManagerView({ pms, getPmStats, getPmBrands, byBrand, goals, onDrillIn, 
 // VIDEO TRACKER
 // ════════════════════════════════════════════════════════════════════════════
 const STATUS_CONFIG = {
-  active:   { label:'Active',      color:'#1f8a55', bg:'#d4f7e7', icon:'✅' },
-  dipped:   { label:'Dipped',      color:'#c0392b', bg:'#fce8e8', icon:'📉' },
-  pipeline: { label:'In Pipeline', color:'#b45309', bg:'#fef3e2', icon:'🔄' },
-  inactive: { label:'Inactive',    color:'#7a789a', bg:'#f0f0f8', icon:'💤' },
+  active:   { label:'Active',      color:'#22c55e', bg:'rgba(34,197,94,0.12)',   icon:'✅' },
+  dipped:   { label:'Dipped',      color:'#ef4444', bg:'rgba(239,68,68,0.12)',   icon:'📉' },
+  pipeline: { label:'In Pipeline', color:'#f0a03a', bg:'rgba(240,160,58,0.12)', icon:'🔄' },
+  inactive: { label:'Inactive',    color:'#52507a', bg:'rgba(82,80,122,0.12)',   icon:'💤' },
 };
 
 function computeBrandVideoStatus(brand, dates, videoData) {
@@ -608,8 +610,10 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
     });
   }, [brandAnalysis, statusFilter, pmFilter, vtSort, vtDir, goals]);
 
-  const vtGoalPct  = Math.min(100,(vtTodayTotal/VIDEO_GOAL)*100);
-  const goalColor  = vtGoalPct>=100?'#3dba7c':vtGoalPct>=70?'#5b8dee':vtGoalPct>=40?'#f0a03a':'#e85c5c';
+  const brandsAtGoal   = brandAnalysis.filter(b=>b.today>=VIDEO_GOAL).length;
+  const totalBrands    = brandAnalysis.length;
+  const vtGoalPct      = totalBrands > 0 ? Math.min(100,(brandsAtGoal/totalBrands)*100) : 0;
+  const goalColor      = vtGoalPct>=80?'#3dba7c':vtGoalPct>=50?'#5b8dee':vtGoalPct>=30?'#f0a03a':'#e85c5c';
   const chartMax   = Math.max(...dailyTotals.map(d=>d.total), VIDEO_GOAL, 1);
 
   // ── Download CSV ──────────────────────────────────────────────────────────
@@ -649,7 +653,7 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
   };
 
   if (videoLoading && !allBrands.length) return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#b0adca' }}>
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#3d3b5c' }}>
       <Spinner size={24} /><span style={{ fontSize:'14px' }}>Loading video data…</span>
     </div>
   );
@@ -660,9 +664,9 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
     <div className="fade-in">
       {/* ── Title bar ── */}
       <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'24px', flexWrap:'wrap' }}>
-        <h2 style={{ fontSize:'20px', fontWeight:800, color:'#1a1835', letterSpacing:'-0.4px' }}>📹 Video Tracker</h2>
+        <h2 style={{ fontSize:'20px', fontWeight:800, color:'#e8e6f4', letterSpacing:'-0.4px' }}>📹 Video Tracker</h2>
         <span style={{ background:'#ede9ff', color:'#8b6ee8', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'20px' }}>100 Videos / Day Goal</span>
-        {videoLoading && <span style={{ display:'flex', alignItems:'center', gap:'5px', fontSize:'12px', color:'#b0adca' }}><Spinner />…</span>}
+        {videoLoading && <span style={{ display:'flex', alignItems:'center', gap:'5px', fontSize:'12px', color:'#3d3b5c' }}><Spinner />…</span>}
         <div style={{ marginLeft:'auto' }}>
           <button className="btn-download" onClick={downloadCSV}>
             ⬇ Download Report
@@ -673,20 +677,20 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
       {/* ── KPI row ── */}
       <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:'16px', marginBottom:'24px', alignItems:'stretch' }}>
         <div className="card" style={{ padding:'20px 24px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'8px', minWidth:'160px' }}>
-          <DonutProgress value={vtTodayTotal} max={VIDEO_GOAL} color={goalColor} />
+          <DonutProgress value={brandsAtGoal} max={totalBrands} color={goalColor} label={`${brandsAtGoal}/${totalBrands}`} />
           <div style={{ textAlign:'center' }}>
-            <div style={{ fontSize:'13px', fontWeight:700, color:'#1a1835' }}>{vtDate ? vtDate : "Today's Videos"}</div>
-            <div style={{ fontSize:'11px', color:'#8e8caa' }}>Goal: {VIDEO_GOAL}/day</div>
+            <div style={{ fontSize:'13px', fontWeight:700, color:'#e8e6f4' }}>Brands at Goal</div>
+            <div style={{ fontSize:'11px', color:'#52507a' }}>≥{VIDEO_GOAL} videos/brand</div>
           </div>
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px' }}>
-          <StatCard label={vtDate ? vtDate.slice(5) : "Today"} value={vtTodayTotal.toString()} color={goalColor} icon="🎬" sub={`${vtGoalPct.toFixed(0)}% of goal`} />
+          <StatCard label={vtDate ? vtDate.slice(5) : "Today"} value={vtTodayTotal.toString()} color="#5b8dee" icon="🎬" sub={`${brandsAtGoal} of ${totalBrands} brands at goal`} />
           <StatCard label="7-Day Avg"   value={avg7d.toFixed(1)}           color="#5b8dee"   icon="📈" sub="daily avg (videos)" />
           <StatCard label="MTD Avg"     value={mtdPortfolioAvg.toFixed(1)} color="#8b6ee8"   icon="📅" sub={`${mtdDates.length}d elapsed · ${mtdPortfolioTotal} total`} />
           <StatCard label="In Pipeline" value={(statusCounts.pipeline||0).toString()} color="#f0a03a" icon="🔄" sub="samples ready, no videos" />
         </div>
         <div className="card" style={{ padding:'16px 20px', minWidth:'260px' }}>
-          <div style={{ fontSize:'11px', fontWeight:700, color:'#b0adca', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'10px' }}>Last 7 Days Portfolio</div>
+          <div style={{ fontSize:'11px', fontWeight:700, color:'#3d3b5c', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'10px' }}>Last 7 Days Portfolio</div>
           <div style={{ display:'flex', alignItems:'flex-end', gap:'6px', height:'60px' }}>
             {dailyTotals.slice().reverse().map((d,i)=>{
               const h=Math.max(2,(d.total/chartMax)*60), isToday=i===dailyTotals.length-1;
@@ -694,38 +698,38 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
               return (
                 <div key={d.date} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }}>
                   <div style={{ width:'100%', height:`${h}px`, background:col, borderRadius:'3px 3px 0 0', opacity:isToday?1:0.55 }} title={`${d.date}: ${d.total}`} />
-                  <div style={{ fontSize:'9px', color:isToday?'#4a4870':'#b0adca', whiteSpace:'nowrap' }}>{d.date}</div>
+                  <div style={{ fontSize:'9px', color:isToday?'#9896b8':'#3d3b5c', whiteSpace:'nowrap' }}>{d.date}</div>
                 </div>
               );
             })}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'8px' }}>
             <div style={{ width:'16px', height:'2px', background:'#5b8dee', borderRadius:'1px' }} />
-            <span style={{ fontSize:'10px', color:'#b0adca' }}>100/day goal</span>
+            <span style={{ fontSize:'10px', color:'#3d3b5c' }}>100/day goal</span>
           </div>
         </div>
       </div>
 
       {/* ── Filters row ── */}
       <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'16px', flexWrap:'wrap' }}>
-        <span style={{ fontSize:'11px', color:'#b0adca', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px' }}>Status:</span>
+        <span style={{ fontSize:'11px', color:'#3d3b5c', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px' }}>Status:</span>
         {[['all','All Brands',brandAnalysis.length],...Object.entries(STATUS_CONFIG).map(([k,v])=>[k,v.label,statusCounts[k]||0])].map(([v,l,cnt])=>(
-          <button key={v} onClick={()=>setStatusFilter(v)} style={{ padding:'5px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:statusFilter===v?700:500, cursor:'pointer', border:'none', background:statusFilter===v?(STATUS_CONFIG[v]?.bg||'#ede9ff'):'transparent', color:statusFilter===v?(STATUS_CONFIG[v]?.color||'#5b8dee'):'#8e8caa', outline:statusFilter===v?`1px solid ${STATUS_CONFIG[v]?.color||'#5b8dee'}55`:'1px solid #e4e0fa', transition:'all 0.15s' }}>{l} <span style={{opacity:0.7}}>({cnt})</span></button>
+          <button key={v} onClick={()=>setStatusFilter(v)} style={{ padding:'5px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:statusFilter===v?700:500, cursor:'pointer', border:'none', background:statusFilter===v?(STATUS_CONFIG[v]?.bg||'#ede9ff'):'transparent', color:statusFilter===v?(STATUS_CONFIG[v]?.color||'#5b8dee'):'#52507a', outline:statusFilter===v?`1px solid ${STATUS_CONFIG[v]?.color||'#5b8dee'}55`:'1px solid rgba(255,255,255,0.07)', transition:'all 0.15s' }}>{l} <span style={{opacity:0.7}}>({cnt})</span></button>
         ))}
 
         <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'8px' }}>
           {/* Date filter */}
           <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-            <span style={{ fontSize:'11px', color:'#b0adca', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px' }}>📅</span>
+            <span style={{ fontSize:'11px', color:'#3d3b5c', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px' }}>📅</span>
             <select value={vtDate} onChange={e=>setVtDate(e.target.value)}
-              style={{ background:'#f4f2ff', border:'1px solid #e4e0fa', color:'#4a4870', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
+              style={{ background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
               <option value="">Latest ({today})</option>
               {loadedDates.slice(1).map(d=><option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           {/* PM filter */}
           <select value={pmFilter} onChange={e=>setPmFilter(e.target.value)}
-            style={{ background:'#f4f2ff', border:'1px solid #e4e0fa', color:'#4a4870', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
+            style={{ background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
             <option value="all">All PMs</option>
             {pms.map(pm=><option key={pm.id} value={pm.id}>{pm.name}</option>)}
           </select>
@@ -737,7 +741,7 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
         <div style={{ overflowX:'auto' }}>
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
             <thead>
-              <tr style={{ background:'#f7f5ff', borderBottom:'1px solid #e4e0fa' }}>
+              <tr style={{ background:'#13131f', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
                 <Th label="#" />
                 <Th label="Brand" />
                 <Th label="PM" />
@@ -760,24 +764,24 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
                 const left  = goal>0 ? goal - b.mtdApproved : null;
                 const leftColor = left===null?'':(left<=0?'#3dba7c':left<goal*0.3?'#f0a03a':'#e85c5c');
                 const lmDiff = (b.lastMoSum!=null&&b.mtdSum!=null) ? b.mtdSum - b.lastMoSum : null;
-                const lmColor= lmDiff===null?'#b0adca':lmDiff>0?'#3dba7c':lmDiff<0?'#e85c5c':'#8e8caa';
+                const lmColor= lmDiff===null?'#3d3b5c':lmDiff>0?'#3dba7c':lmDiff<0?'#e85c5c':'#52507a';
                 return (
                   <tr key={b.brand} className="hover-row" style={{ borderBottom:'1px solid #f2f0fb' }}>
-                    <td style={{ padding:'10px 8px 10px 14px', color:'#ccc9e8', fontSize:'12px', width:'32px' }}>{idx+1}</td>
-                    <td style={{ padding:'10px 14px', color:'#1a1835', fontWeight:600, whiteSpace:'nowrap' }}>{b.brand}</td>
+                    <td style={{ padding:'10px 8px 10px 14px', color:'#2a2a45', fontSize:'12px', width:'32px' }}>{idx+1}</td>
+                    <td style={{ padding:'10px 14px', color:'#e8e6f4', fontWeight:600, whiteSpace:'nowrap' }}>{b.brand}</td>
                     <td style={{ padding:'10px 14px' }}>
                       {pm ? (
                         <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
                           <div style={{ width:'20px', height:'20px', borderRadius:'5px', background:`${pm.color}22`, border:`1px solid ${pm.color}55`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:700, color:pm.color }}>{initials(pm.name)}</div>
-                          <span style={{ color:'#7a789a', fontSize:'12px' }}>{pm.name}</span>
+                          <span style={{ color:'#52507a', fontSize:'12px' }}>{pm.name}</span>
                         </div>
-                      ) : <span style={{ color:'#ccc9e8', fontSize:'12px' }}>—</span>}
+                      ) : <span style={{ color:'#2a2a45', fontSize:'12px' }}>—</span>}
                     </td>
-                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.today>0?'#1a1835':'#b0adca', fontWeight:b.today>0?700:400 }}>{b.today||'—'}</td>
-                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#4a4870' }}>{b.avg7d.toFixed(1)}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.today>0?'#e8e6f4':'#3d3b5c', fontWeight:b.today>0?700:400 }}>{b.today||'—'}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#9896b8' }}>{b.avg7d.toFixed(1)}</td>
                     <td style={{ padding:'10px 14px', textAlign:'right' }}>
                       <span style={{ color:'#8b6ee8', fontWeight:600 }}>{b.mtdAvg.toFixed(1)}</span>
-                      <span style={{ color:'#b0adca', fontSize:'10px', marginLeft:'3px' }}>/d</span>
+                      <span style={{ color:'#3d3b5c', fontSize:'10px', marginLeft:'3px' }}>/d</span>
                     </td>
                     <td style={{ padding:'10px 14px', textAlign:'right' }}>
                       {b.lastMoSum!=null ? (
@@ -785,7 +789,7 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
                           {b.lastMoSum}
                           {lmDiff!==null&&lmDiff!==0 && <span style={{ fontSize:'10px', marginLeft:'4px', fontWeight:700 }}>{lmDiff>0?'▲':'▼'}{Math.abs(lmDiff)}</span>}
                         </span>
-                      ) : <span style={{ color:'#e4e0fa' }}>—</span>}
+                      ) : <span style={{ color:'rgba(255,255,255,0.07)' }}>—</span>}
                     </td>
                     <td style={{ padding:'10px 14px' }}><Sparkline data={b.last7} /></td>
                     <td style={{ padding:'10px 14px' }}>
@@ -793,24 +797,24 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
                     </td>
                     <td style={{ padding:'10px 14px', minWidth:'95px' }}>
                       <input type="number" min="0" value={goals[b.brand]||''} onChange={e=>updateGoal(b.brand,e.target.value)} placeholder="Set goal"
-                        style={{ width:'80px', background:'#f4f2ff', border:'1px solid #e4e0fa', color:'#4a4870', padding:'3px 7px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }} />
+                        style={{ width:'80px', background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'3px 7px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }} />
                     </td>
-                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.mtdApproved>0?'#f0a03a':'#b0adca', fontWeight:b.mtdApproved>0?700:400 }}>{b.mtdApproved||'—'}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.mtdApproved>0?'#f0a03a':'#3d3b5c', fontWeight:b.mtdApproved>0?700:400 }}>{b.mtdApproved||'—'}</td>
                     <td style={{ padding:'10px 14px', textAlign:'right' }}>
-                      {left!==null ? <span style={{ color:leftColor, fontWeight:700 }}>{left<=0?'✓ Done':left}</span> : <span style={{ color:'#ccc9e8' }}>—</span>}
+                      {left!==null ? <span style={{ color:leftColor, fontWeight:700 }}>{left<=0?'✓ Done':left}</span> : <span style={{ color:'#2a2a45' }}>—</span>}
                     </td>
                   </tr>
                 );
               })}
-              {filtered.length===0 && <tr><td colSpan={12} style={{ padding:'40px', textAlign:'center', color:'#b0adca' }}>No brands match the current filter.</td></tr>}
+              {filtered.length===0 && <tr><td colSpan={12} style={{ padding:'40px', textAlign:'center', color:'#3d3b5c' }}>No brands match the current filter.</td></tr>}
             </tbody>
           </table>
         </div>
-        <div style={{ padding:'10px 16px', borderTop:'1px solid #f2f0fb', fontSize:'11px', color:'#b0adca', display:'flex', gap:'16px', flexWrap:'wrap', background:'#faf8ff' }}>
+        <div style={{ padding:'10px 16px', borderTop:'1px solid #f2f0fb', fontSize:'11px', color:'#3d3b5c', display:'flex', gap:'16px', flexWrap:'wrap', background:'#0e0e1a' }}>
           {Object.entries(STATUS_CONFIG).map(([k,v])=>(
             <span key={k}><span style={{color:v.color}}>{v.icon} {v.label}</span>: {k==='active'?'posting recently':k==='dipped'?'dropped >50% vs prior week':k==='pipeline'?'samples approved, no videos yet':'no activity in 14 days'}</span>
           ))}
-          <span style={{ marginLeft:'auto', color:'#ccc9e8' }}>Last Mo. = {lastMoLabel} · MTD Avg = daily rate this month · Left = Goal − Approved MTD</span>
+          <span style={{ marginLeft:'auto', color:'#2a2a45' }}>Last Mo. = {lastMoLabel} · MTD Avg = daily rate this month · Left = Goal − Approved MTD</span>
         </div>
       </div>
     </div>
@@ -829,48 +833,48 @@ function SettingsModal({ pms, setPms, brandList, brandMap, assignBrand, onClose 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(26,24,53,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100 }}
       onClick={e=>{ if(e.target===e.currentTarget) onClose(); }}>
-      <div style={{ background:'#ffffff', border:'1px solid #e4e0fa', borderRadius:'14px', width:'600px', maxHeight:'84vh', display:'flex', flexDirection:'column', boxShadow:'0 24px 64px rgba(91,78,200,0.18)' }}>
-        <div style={{ padding:'18px 22px', borderBottom:'1px solid #e4e0fa', display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0 }}>
-          <span style={{ fontWeight:800, fontSize:'15px', color:'#1a1835' }}>⚙ Settings</span>
-          <button onClick={onClose} style={{ background:'#f4f2ff', border:'1px solid #e4e0fa', color:'#8e8caa', cursor:'pointer', fontSize:'14px', width:'28px', height:'28px', borderRadius:'7px', lineHeight:1, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+      <div style={{ background:'#111120', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'14px', width:'600px', maxHeight:'84vh', display:'flex', flexDirection:'column', boxShadow:'0 24px 64px rgba(91,78,200,0.18)' }}>
+        <div style={{ padding:'18px 22px', borderBottom:'1px solid rgba(255,255,255,0.07)', display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0 }}>
+          <span style={{ fontWeight:800, fontSize:'15px', color:'#e8e6f4' }}>⚙ Settings</span>
+          <button onClick={onClose} style={{ background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#52507a', cursor:'pointer', fontSize:'14px', width:'28px', height:'28px', borderRadius:'7px', lineHeight:1, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
         </div>
-        <div style={{ display:'flex', borderBottom:'1px solid #e4e0fa', flexShrink:0 }}>
+        <div style={{ display:'flex', borderBottom:'1px solid rgba(255,255,255,0.07)', flexShrink:0 }}>
           {[['brands','Assign Brands'],['pms','Manage PMs']].map(([t,l])=>(
-            <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'11px', background:tab===t?'#f7f5ff':'transparent', border:'none', borderBottom:tab===t?'2px solid #5b8dee':'2px solid transparent', color:tab===t?'#1a1835':'#8e8caa', cursor:'pointer', fontSize:'13px', fontWeight:tab===t?700:400 }}>{l}</button>
+            <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'11px', background:tab===t?'#13131f':'transparent', border:'none', borderBottom:tab===t?'2px solid #5b8dee':'2px solid transparent', color:tab===t?'#e8e6f4':'#52507a', cursor:'pointer', fontSize:'13px', fontWeight:tab===t?700:400 }}>{l}</button>
           ))}
         </div>
         <div style={{ flex:1, overflowY:'auto', padding:'18px' }}>
           {tab==='brands' && (
             <div>
-              <div style={{ fontSize:'12px', color:'#8e8caa', marginBottom:'12px' }}>Assign each brand to a PM. Changes save automatically.</div>
+              <div style={{ fontSize:'12px', color:'#52507a', marginBottom:'12px' }}>Assign each brand to a PM. Changes save automatically.</div>
               <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍  Search brands…"
-                style={{ width:'100%', background:'#f4f2ff', border:'1px solid #e4e0fa', color:'#4a4870', padding:'8px 12px', borderRadius:'7px', fontSize:'13px', marginBottom:'12px' }} />
+                style={{ width:'100%', background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px', marginBottom:'12px' }} />
               {filtered.map(brand=>(
                 <div key={brand} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'7px 0', borderBottom:'1px solid #f4f2ff' }}>
-                  <span style={{ flex:1, color:'#1a1835', fontSize:'13px' }}>{brand}</span>
+                  <span style={{ flex:1, color:'#e8e6f4', fontSize:'13px' }}>{brand}</span>
                   <select value={brandMap[brand]||''} onChange={e=>assignBrand(brand,e.target.value)}
-                    style={{ background:'#f4f2ff', border:'1px solid #e4e0fa', color:'#4a4870', padding:'4px 8px', borderRadius:'5px', fontSize:'12px', cursor:'pointer' }}>
+                    style={{ background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'4px 8px', borderRadius:'5px', fontSize:'12px', cursor:'pointer' }}>
                     <option value="">— Unassigned —</option>
                     {pms.map(pm=><option key={pm.id} value={pm.id}>{pm.name}</option>)}
                   </select>
                 </div>
               ))}
-              {filtered.length===0 && <div style={{ color:'#b0adca', textAlign:'center', padding:'20px' }}>No brands match.</div>}
+              {filtered.length===0 && <div style={{ color:'#3d3b5c', textAlign:'center', padding:'20px' }}>No brands match.</div>}
             </div>
           )}
           {tab==='pms' && (
             <div>
               <div style={{ display:'flex', gap:'8px', marginBottom:'18px' }}>
                 <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addPm()} placeholder="New PM name…"
-                  style={{ flex:1, background:'#f4f2ff', border:'1px solid #e4e0fa', color:'#4a4870', padding:'8px 12px', borderRadius:'7px', fontSize:'13px' }} />
-                <button onClick={addPm} style={{ background:'#5b8dee', border:'none', color:'#fff', padding:'8px 16px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', fontWeight:700 }}>+ Add PM</button>
+                  style={{ flex:1, background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px' }} />
+                <button onClick={addPm} style={{ background:'#7c6af5', border:'none', color:'#fff', padding:'8px 16px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', fontWeight:700 }}>+ Add PM</button>
               </div>
               {pms.map(pm=>(
                 <div key={pm.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'8px 0', borderBottom:'1px solid #f4f2ff' }}>
                   <div style={{ width:'28px', height:'28px', borderRadius:'7px', background:`${pm.color}22`, border:`1px solid ${pm.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:800, color:pm.color, flexShrink:0 }}>{initials(pm.name)}</div>
                   <input value={pm.name} onChange={e=>setPms(prev=>prev.map(p=>p.id===pm.id?{...p,name:e.target.value}:p))}
-                    style={{ flex:1, background:'transparent', border:'1px solid transparent', color:'#1a1835', padding:'5px 8px', borderRadius:'5px', fontSize:'13px' }}
-                    onFocus={e=>e.target.style.borderColor='#e4e0fa'} onBlur={e=>e.target.style.borderColor='transparent'} />
+                    style={{ flex:1, background:'transparent', border:'1px solid transparent', color:'#e8e6f4', padding:'5px 8px', borderRadius:'5px', fontSize:'13px' }}
+                    onFocus={e=>e.target.style.borderColor='rgba(255,255,255,0.07)'} onBlur={e=>e.target.style.borderColor='transparent'} />
                   <button onClick={()=>setPms(prev=>prev.filter(p=>p.id!==pm.id))}
                     style={{ background:'transparent', border:'1px solid #e85c5c', color:'#e85c5c', padding:'4px 10px', borderRadius:'5px', cursor:'pointer', fontSize:'12px' }}>Remove</button>
                 </div>
@@ -888,13 +892,13 @@ function SettingsModal({ pms, setPms, brandList, brandMap, assignBrand, onClose 
 // ════════════════════════════════════════════════════════════════════════════
 function StatCard({ label, value, sub, color, icon, bar }) {
   return (
-    <div style={{ background:'#ffffff', border:'1px solid #e4e0fa', borderRadius:'11px', padding:'16px', position:'relative', overflow:'hidden', boxShadow:'0 1px 4px rgba(91,78,200,0.06)' }}>
+    <div style={{ background:'#111120', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'11px', padding:'16px', position:'relative', overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.3)' }}>
       <div style={{ position:'absolute', top:0, left:0, width:'3px', height:'100%', background:color||'#5b8dee', borderRadius:'11px 0 0 11px' }} />
       <div style={{ paddingLeft:'4px' }}>
-        <div style={{ fontSize:'10px', color:'#b0adca', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'7px', display:'flex', alignItems:'center', gap:'4px' }}>{icon&&<span>{icon}</span>}{label}</div>
-        <div style={{ fontSize:'22px', fontWeight:800, color:color||'#1a1835', lineHeight:1, letterSpacing:'-0.5px' }}>{value}</div>
-        {sub && <div style={{ fontSize:'11px', color:'#8e8caa', marginTop:'4px' }}>{sub}</div>}
-        {bar!=null && <div style={{ marginTop:'10px', background:'#f4f2ff', borderRadius:'4px', height:'4px' }}><div style={{ height:'100%', borderRadius:'4px', width:`${bar}%`, background:color||'#5b8dee', transition:'width 0.3s' }} /></div>}
+        <div style={{ fontSize:'10px', color:'#3d3b5c', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'7px', display:'flex', alignItems:'center', gap:'4px' }}>{icon&&<span>{icon}</span>}{label}</div>
+        <div style={{ fontSize:'22px', fontWeight:800, color:color||'#e8e6f4', lineHeight:1, letterSpacing:'-0.5px' }}>{value}</div>
+        {sub && <div style={{ fontSize:'11px', color:'#52507a', marginTop:'4px' }}>{sub}</div>}
+        {bar!=null && <div style={{ marginTop:'10px', background:'#1a1a2e', borderRadius:'4px', height:'4px' }}><div style={{ height:'100%', borderRadius:'4px', width:`${bar}%`, background:color||'#5b8dee', transition:'width 0.3s' }} /></div>}
       </div>
     </div>
   );
@@ -902,8 +906,8 @@ function StatCard({ label, value, sub, color, icon, bar }) {
 
 function MiniStat({ label, value, color }) {
   return (
-    <div style={{ background:'#f7f5ff', borderRadius:'7px', padding:'8px 10px' }}>
-      <div style={{ fontSize:'10px', color:'#b0adca', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.5px' }}>{label}</div>
+    <div style={{ background:'#13131f', borderRadius:'7px', padding:'8px 10px' }}>
+      <div style={{ fontSize:'10px', color:'#3d3b5c', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.5px' }}>{label}</div>
       <div style={{ fontSize:'15px', fontWeight:800, color }}>{value}</div>
     </div>
   );
@@ -913,14 +917,14 @@ function Th({ label, col, sortBy, sortDir, onSort, right }) {
   const active = col && sortBy===col;
   return (
     <th onClick={()=>col&&onSort(col)} style={{ padding:'10px 14px', textAlign:right?'right':'left', cursor:col?'pointer':'default',
-      color:active?'#5b8dee':'#b0adca', fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.6px', whiteSpace:'nowrap', userSelect:'none' }}>
+      color:active?'#5b8dee':'#3d3b5c', fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.6px', whiteSpace:'nowrap', userSelect:'none' }}>
       {label}{active?(sortDir==='asc'?' ↑':' ↓'):''}
     </th>
   );
 }
 
 function Sparkline({ data, height=28, width=72 }) {
-  if (!data||data.every(v=>v===0)) return <span style={{ color:'#ccc9e8', fontSize:'11px' }}>no activity</span>;
+  if (!data||data.every(v=>v===0)) return <span style={{ color:'#2a2a45', fontSize:'11px' }}>no activity</span>;
   const max = Math.max(...data, 1);
   const pts = data.map((v,i) => `${(i/(data.length-1))*width},${height-(v/max)*(height-2)}`).join(' ');
   const color = data[0] > data[data.length-1]*0.5 ? '#3dba7c' : '#e85c5c';
@@ -937,7 +941,7 @@ function DonutProgress({ value, max, color }) {
   const r=30, cx=40, cy=40, circ=2*Math.PI*r;
   return (
     <svg width="80" height="80" viewBox="0 0 80 80">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f4f2ff" strokeWidth="8" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#1e1e35" strokeWidth="8" />
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="8"
         strokeDasharray={circ} strokeDashoffset={circ*(1-pct)}
         strokeLinecap="round" transform="rotate(-90 40 40)" style={{ transition:'stroke-dashoffset 0.5s ease' }} />
@@ -955,10 +959,10 @@ function Spinner({ size=12 }) {
 
 function EmptyState() {
   return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#b0adca' }}>
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#3d3b5c' }}>
       <div style={{ fontSize:'48px' }}>👈</div>
-      <div style={{ fontSize:'16px', fontWeight:700, color:'#7a789a' }}>Select a PM to view their brands</div>
-      <div style={{ fontSize:'13px' }}>Or switch to <strong style={{ color:'#8e8caa' }}>Manager View</strong> for the full team overview</div>
+      <div style={{ fontSize:'16px', fontWeight:700, color:'#52507a' }}>Select a PM to view their brands</div>
+      <div style={{ fontSize:'13px' }}>Or switch to <strong style={{ color:'#52507a' }}>Manager View</strong> for the full team overview</div>
     </div>
   );
 }
@@ -968,7 +972,7 @@ function CorsError() {
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', maxWidth:'520px', margin:'0 auto', textAlign:'center' }}>
       <div style={{ fontSize:'44px' }}>🚫</div>
       <div style={{ fontSize:'16px', fontWeight:800, color:'#e85c5c' }}>API Access Blocked</div>
-      <div style={{ fontSize:'13px', color:'#8e8caa', lineHeight:1.7 }}>The n8n proxy workflows (<code style={{ background:'#f4f2ff', padding:'1px 5px', borderRadius:'3px', color:'#8b6ee8' }}>tts-proxy-dates</code> / <code style={{ background:'#f4f2ff', padding:'1px 5px', borderRadius:'3px', color:'#8b6ee8' }}>tts-proxy-report</code>) may be inactive. Check that both workflows are Active in n8n.</div>
+      <div style={{ fontSize:'13px', color:'#52507a', lineHeight:1.7 }}>The n8n proxy workflows (<code style={{ background:'#1a1a2e', padding:'1px 5px', borderRadius:'3px', color:'#8b6ee8' }}>tts-proxy-dates</code> / <code style={{ background:'#1a1a2e', padding:'1px 5px', borderRadius:'3px', color:'#8b6ee8' }}>tts-proxy-report</code>) may be inactive. Check that both workflows are Active in n8n.</div>
     </div>
   );
 }
