@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TTS Video Tracker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0c0b1e; color: #c2c0e8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2e2c52; border-radius: 10px; }
+    input, select, button { font-family: inherit; }
+    input:focus, select:focus { outline: 2px solid #9d8ff7; outline-offset: -1px; }
+    .fade-in { animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .card { background: linear-gradient(145deg, #161530 0%, #111028 100%); border: 1px solid rgba(157,143,247,0.12); border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); }
+    .hover-row { transition: background 0.1s; }
+    .hover-row:hover { background: rgba(157,143,247,0.07) !important; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .btn-download { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; background: linear-gradient(135deg,#6e8ef7,#9d8ff7); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.15s; letter-spacing: 0.3px; box-shadow: 0 2px 12px rgba(157,143,247,0.4); }
+    .btn-download:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(157,143,247,0.5); }
+    input[type=number], input[type=text], select { background: #1a193a !important; border: 1px solid rgba(157,143,247,0.15) !important; color: #d8d6f4 !important; }
+    option { background: #1a193a; color: #d8d6f4; }
+    th { color: #7e7ca8 !important; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+const API_DATES  = 'https://community-prod-n8n.pattern.com/webhook/tts-proxy-dates';
+const API_REPORT = 'https://community-prod-n8n.pattern.com/webhook/tts-proxy-report';
+const VIDEO_GOAL = 100;
+const PM_COLORS  = ['#5b8dee','#3dba7c','#f0a03a','#e85c5c','#8b6ee8','#26bfa8','#e06ba0','#7ac94e','#f07842','#20b2aa','#7c86f5','#f5607a'];
+
+const lsGet = (k, def) => { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : def; } catch { return def; } };
+const lsSet = (k, v)   => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+const initials = name => name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+
+const STATUS_CONFIG = {
+  active:   { label:'Active',      color:'#22c55e', bg:'rgba(34,197,94,0.12)',   icon:'✅' },
+  dipped:   { label:'Dipped',      color:'#ef4444', bg:'rgba(239,68,68,0.12)',   icon:'📉' },
+  pipeline: { label:'In Pipeline', color:'#f0a03a', bg:'rgba(240,160,58,0.12)', icon:'🔄' },
+  inactive: { label:'Inactive',    color:'#52507a', bg:'rgba(82,80,122,0.12)',   icon:'💤' },
+};
+
+const DEFAULT_PMS = [
+  {id:'abrar',name:'Abrar',color:PM_COLORS[0]},{id:'aman',name:'Aman',color:PM_COLORS[1]},
+  {id:'amruta',name:'Amruta',color:PM_COLORS[2]},{id:'ansh',name:'Ansh',color:PM_COLORS[3]},
+  {id:'harshad',name:'Harshad',color:PM_COLORS[4]},{id:'jing',name:'Jing',color:PM_COLORS[5]},
+  {id:'kaustubh',name:'Kaustubh',color:PM_COLORS[6]},{id:'oshin',name:'Oshin',color:PM_COLORS[7]},
+  {id:'palak',name:'Palak',color:PM_COLORS[8]},{id:'ritika',name:'Ritika',color:PM_COLORS[9]},
+  {id:'saat',name:'Saat',color:PM_COLORS[10]},{id:'sakshi',name:'Sakshi',color:PM_COLORS[11]},
+  {id:'sanskrati',name:'Sanskrati',color:PM_COLORS[0]},{id:'simran',name:'Simran',color:PM_COLORS[1]},
+  {id:'sumit',name:'Sumit',color:PM_COLORS[2]},{id:'taanisha',name:'Taanisha',color:PM_COLORS[3]},
+  {id:'tanishk',name:'Tanishk',color:PM_COLORS[4]},
+];
+
+const DEFAULT_BRAND_MAP = {
+  "Integrative Therapeutics":"abrar","PBfit":"abrar","Leatherman Tools":"abrar","youtheory":"abrar","Herbs, Etc.":"abrar","Life Extension Supplements":"abrar",
+  "Natural Factors":"aman","Fix-a-Flat":"aman","Davids Premium Oral Care":"aman","Flora Health Shop":"aman","Renzo's Vitamins":"aman","Cosyuree.":"aman","TruNiagen":"aman",
+  "HALEYS Beauty":"amruta","Kiyomi Skin":"amruta","skinfix":"amruta","Ulta Beauty":"amruta",
+  "GAT Sport USA":"ansh","livehumann":"ansh","MegaFood Shop":"ansh","Strider Bikes":"ansh","K9 Feline Natural":"ansh",
+  "One A Day Shop":"harshad","Floradix":"harshad","Gaia Herbs Shop":"harshad","Zenwise Health":"harshad","Emerald Labs":"harshad","Elevate organic":"harshad","Elevate Organic":"harshad",
+  "Murad Skincare":"jing",
+  "Away Travel":"kaustubh","Forever 21":"kaustubh","Roxy":"kaustubh","Volcom":"kaustubh",
+  "Brutus Broth":"oshin","Color Wow Hair":"oshin","CeraVe":"oshin",
+  "Buttermints":"palak","Mercola Market Shop":"palak","Thinx US":"palak","Wiley's Finest Shop":"palak",
+  "Megababe":"ritika","OLLY Wellness":"ritika","NOW":"ritika","Philips Shop US":"ritika","Vital Proteins Shop":"ritika","Kradle":"ritika",
+  "Keeps":"saat",
+  "Uqora Official":"sakshi","New Chapter Inc":"sakshi","The Original Swedish Candy":"sakshi","ILIA Beauty":"sakshi","Fazit":"sakshi","SuavecitoPomade":"sakshi",
+  "G2G Bar":"sanskrati","Heatonist - Stay Spicy":"sanskrati","Balance of Nature Shop":"sanskrati","Blue-Emu":"sanskrati","Hims & Hers":"sanskrati","Sakura of America Shop":"sanskrati",
+  "CureHydration":"simran","SmartMouth":"simran","Weider Global Nutrition":"simran","Baby Brezza":"simran","Pure Encapsulations Shop":"simran",
+  "MuscleTech":"sumit","SIXSTAR PRO":"sumit","NaturalSlimUSA":"sumit","Optimum Nutrition Shop":"sumit",
+  "Better Dog Supplements":"taanisha","BallBoyz Soap":"taanisha","Coco&Eve":"taanisha","Urban Decay Cosmetics":"taanisha","Snackworks":"taanisha",
+  "Barimelts":"tanishk","Dr. Tobias":"tanishk","Seeking Health":"tanishk",
+};
+
+const DEFAULT_GOALS = {
+  "BallBoyz Soap":500,"Barimelts":750,"Better Dog Supplements":500,
+  "Brutus Broth":1200,"CeraVe":3800,"Coco&Eve":800,"CureHydration":2000,
+  "Davids Premium Oral Care":500,"Dr. Tobias":750,"Fazit":2100,
+  "Fix-a-Flat":500,"Flora Health Shop":600,"GAT Sport USA":2000,
+  "HALEYS Beauty":700,"Heatonist - Stay Spicy":700,"Hims & Hers":500,
+  "ILIA Beauty":970,"Integrative Therapeutics":1000,"Kiyomi Skin":700,
+  "Life Extension Supplements":1200,"Megababe":3000,"MegaFood Shop":3000,
+  "Metagenics":1200,"Moncho Moreno":1000,"MuscleTech":2350,
+  "Natural Factors":1000,"NaturalSlimUSA":1500,"New Chapter Inc":3400,
+  "NOW":1500,"OLLY Wellness":2700,"One A Day Shop":1500,
+  "Optimum Nutrition Shop":500,"PBfit":1500,"Philips Shop US":75,
+  "Seeking Health":750,"Setex":500,"SIXSTAR PRO":1000,"skinfix":2500,
+  "SmartMouth":2000,"SuavecitoPomade":4200,"Ulta Beauty":850,
+  "Uqora Official":900,"Urban Decay Cosmetics":3000,"Vital Proteins Shop":1035,
+  "Weider Global Nutrition":1500,"Wiley's Finest Shop":2000,
+  "Winky Lux":1100,"youtheory":3000,
+};
+
+function computeBrandVideoStatus(brand, dates, videoData) {
+  const getVids = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.new_videos || 0;
+  const getSamp = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.sample_approved || 0;
+  const last7sum = dates.slice(0,7).reduce((s,d)=>s+getVids(d),0);
+  const prev7sum = dates.slice(7,14).reduce((s,d)=>s+getVids(d),0);
+  const recentSamples = dates.slice(0,7).reduce((s,d)=>s+getSamp(d),0);
+  if (last7sum===0 && recentSamples>0) return 'pipeline';
+  if (last7sum===0 && prev7sum===0)    return 'inactive';
+  if (prev7sum>=3 && last7sum < prev7sum*0.5) return 'dipped';
+  return 'active';
+}
+
+// ════════════════════════════════════════════════════════════
+// APP
+// ════════════════════════════════════════════════════════════
+function App() {
+  const [dates, setDates]       = useState([]);
+  const [videoData, setVideoData] = useState({});
+  const [loading, setLoading]   = useState(true);
+  const [apiError, setApiError] = useState('');
+  const [pms]                   = useState(() => lsGet('tts_pms', DEFAULT_PMS));
+  const [brandMap]              = useState(() => lsGet('tts_brand_map', DEFAULT_BRAND_MAP));
+  const [goals, setGoals]       = useState(() => ({ ...DEFAULT_GOALS, ...lsGet('tts_goals', {}) }));
+
+  useEffect(() => lsSet('tts_goals', goals), [goals]);
+
+  useEffect(() => {
+    fetch(API_DATES)
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(d => {
+        const list = Array.isArray(d) ? d : (d.dates||[]);
+        setDates(list);
+        if (!list.length) { setLoading(false); return; }
+        const today = list[0];
+        const currentMonth = today.slice(0,7);
+        const dayOfMonth = parseInt(today.slice(8,10));
+        const lmd = new Date(today); lmd.setDate(1); lmd.setMonth(lmd.getMonth()-1);
+        const lastMoPrefix = `${lmd.getFullYear()}-${String(lmd.getMonth()+1).padStart(2,'0')}`;
+        const mtdDates = list.filter(d=>d.startsWith(currentMonth));
+        const lastMoDates = list.filter(d=>d.startsWith(lastMoPrefix) && parseInt(d.slice(8,10)) <= dayOfMonth);
+        const allNeeded = [...new Set([...list.slice(0,30), ...mtdDates, ...lastMoDates])];
+        Promise.all(allNeeded.map(d => fetch(`${API_REPORT}?date=${d}`).then(r=>r.json()).catch(()=>[])))
+          .then(results => {
+            const next = {};
+            allNeeded.forEach((d,i) => { next[d] = results[i]; });
+            setVideoData(next);
+            setLoading(false);
+          });
+      })
+      .catch(() => { setApiError('error'); setLoading(false); });
+  }, []);
+
+  const updateGoal = (brand, val) => setGoals(prev => ({ ...prev, [brand]: val }));
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', minHeight:'100vh' }}>
+      {/* Header */}
+      <div style={{ background:'#100f24', borderBottom:'1px solid rgba(157,143,247,0.1)', padding:'0 28px', display:'flex', alignItems:'center', gap:'16px', height:'52px', flexShrink:0 }}>
+        <span style={{ fontSize:'15px', fontWeight:800, color:'#f2f0ff', letterSpacing:'-0.3px' }}>📹 TTS Video Tracker</span>
+        <span style={{ background:'rgba(157,143,247,0.12)', color:'#9d8ff7', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'20px', border:'1px solid rgba(157,143,247,0.2)' }}>Pattern</span>
+        {loading && <span style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', color:'#6a6892', marginLeft:'4px' }}><Spinner />Loading data…</span>}
+        <div style={{ marginLeft:'auto', fontSize:'11px', color:'#52507a' }}>
+          {dates[0] && `Latest: ${dates[0]}`}
+        </div>
+      </div>
+
+      <main style={{ flex:1, padding:'28px 32px' }}>
+        {apiError ? <CorsError /> : loading && !Object.keys(videoData).length ? (
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#6a6892' }}>
+            <Spinner size={24} /><span style={{ fontSize:'14px' }}>Loading video data…</span>
+          </div>
+        ) : (
+          <VideoTracker dates={dates} videoData={videoData} pms={pms} brandMap={brandMap} goals={goals} updateGoal={updateGoal} />
+        )}
+      </main>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// VIDEO TRACKER
+// ════════════════════════════════════════════════════════════
+function VideoTracker({ dates, videoData, pms, brandMap, goals, updateGoal }) {
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [pmFilter, setPmFilter]         = useState('all');
+  const [vtSort, setVtSort]             = useState('avg7d');
+  const [vtDir, setVtDir]               = useState('desc');
+  const [vtDate, setVtDate]             = useState('');
+  const handleVtSort = col => { if(vtSort===col){setVtDir(d=>d==='desc'?'asc':'desc');}else{setVtSort(col);setVtDir('desc');} };
+
+  const today          = dates[0] || '';
+  const effectiveDate  = vtDate || today;
+  const currentMonth   = today.slice(0,7);
+  const dayOfMonth     = parseInt(today.slice(8,10)) || 1;
+
+  const lastMoPrefix = useMemo(() => {
+    if (!today) return '';
+    const d = new Date(today); d.setDate(1); d.setMonth(d.getMonth()-1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }, [today]);
+
+  const mtdDates    = useMemo(() => dates.filter(d=>d.startsWith(currentMonth)), [dates, currentMonth]);
+  const lastMoDates = useMemo(() => dates.filter(d=>d.startsWith(lastMoPrefix) && parseInt(d.slice(8,10))<=dayOfMonth), [dates, lastMoPrefix, dayOfMonth]);
+  const lastMoLabel = lastMoPrefix ? `${lastMoPrefix.slice(5)} 1-${String(dayOfMonth).padStart(2,'0')}` : 'Last Mo.';
+  const loadedDates = useMemo(() => dates.slice(0,30).filter(d => videoData[d]?.length > 0), [dates, videoData]);
+
+  const allBrands = useMemo(() => {
+    if (!dates.length || !videoData[dates[0]]) return [];
+    return [...new Set(dates.slice(0,14).flatMap(d=>(videoData[d]||[]).map(r=>r.brand_name).filter(Boolean)))];
+  }, [dates, videoData]);
+
+  const brandAnalysis = useMemo(() => {
+    if (!dates.length) return [];
+    return allBrands.map(brand => {
+      const getVids = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.new_videos||0;
+      const getSamp = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.sample_approved||0;
+      const last7    = dates.slice(0,7).map(getVids);
+      const last7sum = last7.reduce((a,b)=>a+b,0);
+      const prev7sum = dates.slice(7,14).reduce((s,d)=>s+getVids(d),0);
+      const mtdSum   = mtdDates.reduce((s,d)=>s+getVids(d),0);
+      const mtdAvg   = mtdDates.length ? mtdSum/mtdDates.length : 0;
+      const mtdApproved = mtdDates.reduce((s,d)=>s+getSamp(d),0);
+      const lastMoSum = lastMoDates.length>0 ? lastMoDates.reduce((s,d)=>s+getVids(d),0) : null;
+      const status   = computeBrandVideoStatus(brand, dates, videoData);
+      const todayVids = (videoData[effectiveDate]||[]).find(r=>r.brand_name===brand)?.new_videos||0;
+      return { brand, last7, last7sum, prev7sum, avg7d:last7sum/7, today:todayVids, mtdSum, mtdAvg, mtdApproved, lastMoSum, status, pmId:brandMap[brand] };
+    }).sort((a,b)=>b.last7sum-a.last7sum);
+  }, [allBrands, dates, videoData, brandMap, mtdDates, lastMoDates, effectiveDate]);
+
+  const dailyTotals = useMemo(() => dates.slice(0,7).map(d=>({ date:d.slice(5), total:(videoData[d]||[]).reduce((s,r)=>s+(r.new_videos||0),0) })), [dates, videoData]);
+  const vtTodayTotal = (videoData[effectiveDate]||[]).reduce((s,r)=>s+(r.new_videos||0),0);
+  const avg7d        = dailyTotals.length ? dailyTotals.reduce((s,d)=>s+d.total,0)/dailyTotals.length : 0;
+  const mtdPortfolioTotal = useMemo(()=>mtdDates.reduce((sum,d)=>(videoData[d]||[]).reduce((s,r)=>s+(r.new_videos||0),sum),0),[mtdDates,videoData]);
+  const mtdPortfolioAvg   = mtdDates.length ? mtdPortfolioTotal/mtdDates.length : 0;
+
+  const statusCounts = brandAnalysis.reduce((acc,b)=>{ acc[b.status]=(acc[b.status]||0)+1; return acc; }, {});
+  const brandsAtGoal = brandAnalysis.filter(b=>b.today>=VIDEO_GOAL).length;
+  const totalBrands  = brandAnalysis.length;
+  const vtGoalPct    = totalBrands > 0 ? Math.min(100,(brandsAtGoal/totalBrands)*100) : 0;
+  const goalColor    = vtGoalPct>=80?'#3dba7c':vtGoalPct>=50?'#5b8dee':vtGoalPct>=30?'#f0a03a':'#e85c5c';
+  const chartMax     = Math.max(...dailyTotals.map(d=>d.total), VIDEO_GOAL, 1);
+
+  const filtered = useMemo(() => {
+    const arr = brandAnalysis.filter(b=>(statusFilter==='all'||b.status===statusFilter)&&(pmFilter==='all'||b.pmId===pmFilter));
+    return [...arr].sort((a,b)=>{
+      let va,vb;
+      if      (vtSort==='today')    { va=a.today;         vb=b.today; }
+      else if (vtSort==='avg7d')    { va=a.avg7d;         vb=b.avg7d; }
+      else if (vtSort==='mtdAvg')   { va=a.mtdAvg;        vb=b.mtdAvg; }
+      else if (vtSort==='lastMo')   { va=a.lastMoSum??-1; vb=b.lastMoSum??-1; }
+      else if (vtSort==='approved') { va=a.mtdApproved;   vb=b.mtdApproved; }
+      else if (vtSort==='left')     { const ga=parseInt(goals[a.brand]||0),gb=parseInt(goals[b.brand]||0); va=ga>0?ga-a.mtdApproved:Infinity; vb=gb>0?gb-b.mtdApproved:Infinity; }
+      else                          { va=a.avg7d;         vb=b.avg7d; }
+      return vtDir==='asc'?va-vb:vb-va;
+    });
+  }, [brandAnalysis, statusFilter, pmFilter, vtSort, vtDir, goals]);
+
+  const downloadCSV = () => {
+    const header = ['Brand','PM','Status',`Videos on ${effectiveDate}`,'MTD Total','MTD Avg/d','Approved MTD','Sample Goal','7D Avg'];
+    const rows = filtered.map(b => {
+      const pm = pms.find(p=>p.id===b.pmId);
+      const sc = STATUS_CONFIG[b.status];
+      const goal = parseInt(goals[b.brand]||0);
+      return [b.brand, pm?.name||'', sc.label, b.today, b.mtdSum, b.mtdAvg.toFixed(1), b.mtdApproved, goal||'', b.avg7d.toFixed(1)];
+    });
+    const csv = [header,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download=`tts-video-report-${effectiveDate}.csv`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  };
+
+  const todayLabel = vtDate ? vtDate.slice(5) : 'Today';
+
+  return (
+    <div className="fade-in">
+      {/* Title bar */}
+      <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'24px', flexWrap:'wrap' }}>
+        <h2 style={{ fontSize:'20px', fontWeight:800, color:'#f2f0ff', letterSpacing:'-0.4px' }}>Video Volume</h2>
+        <span style={{ background:'#ede9ff', color:'#8b6ee8', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'20px' }}>100 Videos / Day Goal</span>
+        <div style={{ marginLeft:'auto' }}>
+          <button className="btn-download" onClick={downloadCSV}>⬇ Download Report</button>
+        </div>
+      </div>
+
+      {/* KPI row */}
+      <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:'16px', marginBottom:'24px', alignItems:'stretch' }}>
+        <div className="card" style={{ padding:'20px 24px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'8px', minWidth:'160px' }}>
+          <DonutProgress value={brandsAtGoal} max={totalBrands} color={goalColor} />
+          <div style={{ textAlign:'center' }}>
+            <div style={{ fontSize:'13px', fontWeight:700, color:'#f2f0ff' }}>Brands at Goal</div>
+            <div style={{ fontSize:'11px', color:'#8e8cb8' }}>≥{VIDEO_GOAL} videos/brand</div>
+          </div>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px' }}>
+          <StatCard label={vtDate ? vtDate.slice(5) : "Today"} value={vtTodayTotal.toString()} color="#5b8dee" icon="🎬" sub={`${brandsAtGoal} of ${totalBrands} brands at goal`} />
+          <StatCard label="7-Day Avg"   value={avg7d.toFixed(1)}           color="#5b8dee" icon="📈" sub="daily avg (videos)" />
+          <StatCard label="MTD Avg"     value={mtdPortfolioAvg.toFixed(1)} color="#8b6ee8" icon="📅" sub={`${mtdDates.length}d elapsed · ${mtdPortfolioTotal} total`} />
+          <StatCard label="In Pipeline" value={(statusCounts.pipeline||0).toString()} color="#f0a03a" icon="🔄" sub="samples ready, no videos" />
+        </div>
+        <div className="card" style={{ padding:'16px 20px', minWidth:'260px' }}>
+          <div style={{ fontSize:'11px', fontWeight:700, color:'#6a6892', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'10px' }}>Last 7 Days Portfolio</div>
+          <div style={{ display:'flex', alignItems:'flex-end', gap:'6px', height:'60px' }}>
+            {dailyTotals.slice().reverse().map((d,i)=>{
+              const h=Math.max(2,(d.total/chartMax)*60), isToday=i===dailyTotals.length-1;
+              const col=d.total>=VIDEO_GOAL?'#3dba7c':d.total>=VIDEO_GOAL*0.7?'#5b8dee':'#f0a03a';
+              return (
+                <div key={d.date} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }}>
+                  <div style={{ width:'100%', height:`${h}px`, background:col, borderRadius:'3px 3px 0 0', opacity:isToday?1:0.55 }} title={`${d.date}: ${d.total}`} />
+                  <div style={{ fontSize:'9px', color:isToday?'#c2c0e8':'#6a6892', whiteSpace:'nowrap' }}>{d.date}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'16px', flexWrap:'wrap' }}>
+        <span style={{ fontSize:'11px', color:'#6a6892', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px' }}>Status:</span>
+        {[['all','All Brands',brandAnalysis.length],...Object.entries(STATUS_CONFIG).map(([k,v])=>[k,v.label,statusCounts[k]||0])].map(([v,l,cnt])=>(
+          <button key={v} onClick={()=>setStatusFilter(v)} style={{ padding:'5px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:statusFilter===v?700:500, cursor:'pointer', border:'none', background:statusFilter===v?(STATUS_CONFIG[v]?.bg||'#ede9ff'):'transparent', color:statusFilter===v?(STATUS_CONFIG[v]?.color||'#5b8dee'):'#8e8cb8', outline:statusFilter===v?`1px solid ${STATUS_CONFIG[v]?.color||'#5b8dee'}55`:'1px solid rgba(255,255,255,0.07)', transition:'all 0.15s' }}>{l} <span style={{opacity:0.7}}>({cnt})</span></button>
+        ))}
+        <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'8px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
+            <span style={{ fontSize:'11px', color:'#6a6892', fontWeight:700 }}>📅</span>
+            <select value={vtDate} onChange={e=>setVtDate(e.target.value)}
+              style={{ background:'#1a193a', border:'1px solid rgba(255,255,255,0.07)', color:'#c2c0e8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
+              <option value="">Latest ({today})</option>
+              {loadedDates.slice(1).map(d=><option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <select value={pmFilter} onChange={e=>setPmFilter(e.target.value)}
+            style={{ background:'#1a193a', border:'1px solid rgba(255,255,255,0.07)', color:'#c2c0e8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
+            <option value="all">All PMs</option>
+            {pms.map(pm=><option key={pm.id} value={pm.id}>{pm.name}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="card" style={{ overflow:'hidden' }}>
+        <div style={{ overflowX:'auto' }}>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
+            <thead>
+              <tr style={{ background:'#100f24', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
+                <Th label="#" />
+                <Th label="Brand" />
+                <Th label="PM" />
+                <Th label={todayLabel}   col="today"    sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
+                <Th label="7D Avg"       col="avg7d"    sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
+                <Th label="MTD Avg"      col="mtdAvg"   sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
+                <Th label={lastMoLabel}  col="lastMo"   sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
+                <Th label="Last 7 Days" />
+                <Th label="Status" />
+                <Th label="Approved MTD" col="approved" sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((b, idx) => {
+                const sc = STATUS_CONFIG[b.status];
+                const pm = pms.find(p=>p.id===b.pmId);
+                const lmDiff = (b.lastMoSum!=null&&b.mtdSum!=null) ? b.mtdSum - b.lastMoSum : null;
+                const lmColor = lmDiff===null?'#6a6892':lmDiff>0?'#3dba7c':lmDiff<0?'#e85c5c':'#8e8cb8';
+                return (
+                  <tr key={b.brand} className="hover-row" style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                    <td style={{ padding:'10px 8px 10px 14px', color:'#52507a', fontSize:'12px', width:'32px' }}>{idx+1}</td>
+                    <td style={{ padding:'10px 14px', color:'#f2f0ff', fontWeight:600, whiteSpace:'nowrap' }}>{b.brand}</td>
+                    <td style={{ padding:'10px 14px' }}>
+                      {pm ? (
+                        <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                          <div style={{ width:'20px', height:'20px', borderRadius:'5px', background:`${pm.color}22`, border:`1px solid ${pm.color}55`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:700, color:pm.color }}>{initials(pm.name)}</div>
+                          <span style={{ color:'#8e8cb8', fontSize:'12px' }}>{pm.name}</span>
+                        </div>
+                      ) : <span style={{ color:'#52507a', fontSize:'12px' }}>—</span>}
+                    </td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.today>0?'#f2f0ff':'#6a6892', fontWeight:b.today>0?700:400 }}>{b.today||'—'}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#c2c0e8' }}>{b.avg7d.toFixed(1)}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>
+                      <span style={{ color:'#8b6ee8', fontWeight:600 }}>{b.mtdAvg.toFixed(1)}</span>
+                      <span style={{ color:'#6a6892', fontSize:'10px', marginLeft:'3px' }}>/d</span>
+                    </td>
+                    <td style={{ padding:'10px 14px', textAlign:'right' }}>
+                      {b.lastMoSum!=null ? (
+                        <span style={{ color:lmColor, fontWeight:600 }}>
+                          {b.lastMoSum}
+                          {lmDiff!==null&&lmDiff!==0 && <span style={{ fontSize:'10px', marginLeft:'4px', fontWeight:700 }}>{lmDiff>0?'▲':'▼'}{Math.abs(lmDiff)}</span>}
+                        </span>
+                      ) : <span style={{ color:'rgba(157,143,247,0.12)' }}>—</span>}
+                    </td>
+                    <td style={{ padding:'10px 14px' }}><Sparkline data={b.last7} /></td>
+                    <td style={{ padding:'10px 14px' }}>
+                      <span className="status-badge" style={{ background:sc.bg, color:sc.color }}>{sc.icon} {sc.label}</span>
+                    </td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.mtdApproved>0?'#f0a03a':'#6a6892', fontWeight:b.mtdApproved>0?700:400 }}>{b.mtdApproved||'—'}</td>
+                  </tr>
+                );
+              })}
+              {filtered.length===0 && <tr><td colSpan={10} style={{ padding:'40px', textAlign:'center', color:'#6a6892' }}>No brands match the current filter.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ padding:'10px 16px', borderTop:'1px solid rgba(255,255,255,0.05)', fontSize:'11px', color:'#6a6892', display:'flex', gap:'16px', flexWrap:'wrap', background:'#0a0919' }}>
+          {Object.entries(STATUS_CONFIG).map(([k,v])=>(
+            <span key={k}><span style={{color:v.color}}>{v.icon} {v.label}</span>: {k==='active'?'posting recently':k==='dipped'?'dropped >50% vs prior week':k==='pipeline'?'samples approved, no videos yet':'no activity in 14 days'}</span>
+          ))}
+          <span style={{ marginLeft:'auto', color:'#52507a' }}>Last Mo. = {lastMoLabel} · MTD Avg = daily rate this month</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// COMPONENTS
+// ════════════════════════════════════════════════════════════
+function StatCard({ label, value, sub, color, icon }) {
+  return (
+    <div style={{ background:'#13122a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'11px', padding:'16px', position:'relative', overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.3)' }}>
+      <div style={{ position:'absolute', top:0, left:0, width:'3px', height:'100%', background:color||'#5b8dee', borderRadius:'11px 0 0 11px' }} />
+      <div style={{ paddingLeft:'4px' }}>
+        <div style={{ fontSize:'10px', color:'#6a6892', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'7px', display:'flex', alignItems:'center', gap:'4px' }}>{icon&&<span>{icon}</span>}{label}</div>
+        <div style={{ fontSize:'22px', fontWeight:800, color:color||'#f2f0ff', lineHeight:1, letterSpacing:'-0.5px' }}>{value}</div>
+        {sub && <div style={{ fontSize:'11px', color:'#8e8cb8', marginTop:'4px' }}>{sub}</div>}
+      </div>
+    </div>
+  );
+}
+
+function Th({ label, col, sortBy, sortDir, onSort, right }) {
+  const active = col && sortBy===col;
+  return (
+    <th onClick={()=>col&&onSort(col)} style={{ padding:'10px 14px', textAlign:right?'right':'left', cursor:col?'pointer':'default',
+      color:active?'#5b8dee':'#6a6892', fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.6px', whiteSpace:'nowrap', userSelect:'none' }}>
+      {label}{active?(sortDir==='asc'?' ↑':' ↓'):''}
+    </th>
+  );
+}
+
+function Sparkline({ data, height=28, width=72 }) {
+  if (!data||data.every(v=>v===0)) return <span style={{ color:'#52507a', fontSize:'11px' }}>no activity</span>;
+  const max = Math.max(...data, 1);
+  const pts = data.map((v,i) => `${(i/(data.length-1))*width},${height-(v/max)*(height-2)}`).join(' ');
+  const color = data[0] > data[data.length-1]*0.5 ? '#3dba7c' : '#e85c5c';
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ overflow:'visible' }}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={pts.split(' ')[0].split(',')[0]} cy={pts.split(' ')[0].split(',')[1]} r="2.5" fill={color} />
+    </svg>
+  );
+}
+
+function DonutProgress({ value, max, color }) {
+  const pct = Math.min(value/max, 1);
+  const r=30, cx=40, cy=40, circ=2*Math.PI*r;
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#1e1c40" strokeWidth="8" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="8"
+        strokeDasharray={circ} strokeDashoffset={circ*(1-pct)}
+        strokeLinecap="round" transform="rotate(-90 40 40)" style={{ transition:'stroke-dashoffset 0.5s ease' }} />
+      <text x={cx} y={cy-4} textAnchor="middle" fill={color} fontSize="16" fontWeight="800">{value}</text>
+      <text x={cx} y={cy+10} textAnchor="middle" fill="#8e8caa" fontSize="10">/{max}</text>
+    </svg>
+  );
+}
+
+function Spinner({ size=12 }) {
+  const [r, setR] = useState(0);
+  useEffect(() => { const id = setInterval(()=>setR(v=>(v+30)%360),100); return ()=>clearInterval(id); }, []);
+  return <svg width={size} height={size} viewBox="0 0 12 12" style={{ flexShrink:0 }}><circle cx="6" cy="6" r="4" fill="none" stroke="#ccc9e8" strokeWidth="2" strokeDasharray="12 6" transform={`rotate(${r} 6 6)`} /></svg>;
+}
+
+function CorsError() {
+  return (
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', maxWidth:'520px', margin:'0 auto', textAlign:'center' }}>
+      <div style={{ fontSize:'44px' }}>🚫</div>
+      <div style={{ fontSize:'16px', fontWeight:800, color:'#e85c5c' }}>API Access Blocked</div>
+      <div style={{ fontSize:'13px', color:'#8e8cb8', lineHeight:1.7 }}>The n8n proxy workflows may be inactive. Check that <code style={{ background:'#1a193a', padding:'1px 5px', borderRadius:'3px', color:'#8b6ee8' }}>tts-proxy-dates</code> and <code style={{ background:'#1a193a', padding:'1px 5px', borderRadius:'3px', color:'#8b6ee8' }}>tts-proxy-report</code> are Active in n8n.</div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
