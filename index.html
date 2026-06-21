@@ -330,7 +330,7 @@ function App() {
            <EmptyState />}
         </main>
       </div>
-      {showSettings && <SettingsModal pms={pms} setPms={setPms} brandList={brandList} brandMap={brandMap} assignBrand={assignBrand} brandLifecycle={brandLifecycle} setLifecycle={setLifecycle} customBrands={customBrands} addCustomBrand={addCustomBrand} removeCustomBrand={removeCustomBrand} prioritySet={prioritySet} onClearCache={()=>{clearCache();alert('Cache cleared. Data will refresh on next load.');}} onClose={()=>setShowSettings(false)} />
+      {showSettings && <SettingsModal pms={pms} setPms={setPms} brandList={brandList} brandMap={brandMap} assignBrand={assignBrand} brandLifecycle={brandLifecycle} setLifecycle={setLifecycle} customBrands={customBrands} addCustomBrand={addCustomBrand} removeCustomBrand={removeCustomBrand} prioritySet={prioritySet} onClearCache={()=>{clearCache();alert('Cache cleared. Data will refresh on next load.');}} onClose={()=>setShowSettings(false)} />}
     </div>
   );
 }
