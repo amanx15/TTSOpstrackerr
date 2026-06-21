@@ -3,32 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TTS Operations Dashboard</title>
+  <title>TTS Operations Dashboard · Pattern</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #08080f; color: #9896b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; height: 100vh; overflow: hidden; }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    body { background: #030b18; color: #94A3B8; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; background-image: radial-gradient(ellipse 80% 40% at 50% -5%, rgba(123,95,255,0.13) 0%, transparent 60%); }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #2a2a45; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #1e2d45; border-radius: 8px; }
     input, select, button { font-family: inherit; }
-    input:focus, select:focus { outline: 2px solid #7c6af5; outline-offset: -1px; }
-    button:focus-visible { outline: 2px solid #7c6af5; outline-offset: 2px; }
+    input:focus, select:focus { outline: 1px solid #7B5FFF; outline-offset: -1px; }
+    button:focus-visible { outline: 2px solid #7B5FFF; outline-offset: 2px; }
     .fade-in { animation: fadeIn 0.2s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    .card { background: #111120; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+    .card { background: #071120; border: 1px solid rgba(148,163,184,0.08); border-radius: 14px; }
     .hover-row { transition: background 0.1s; }
-    .hover-row:hover { background: rgba(124,106,245,0.06) !important; }
+    .hover-row:hover { background: rgba(123,95,255,0.05) !important; }
     .pm-item { cursor: pointer; border-left: 3px solid transparent; transition: background 0.1s; padding: 10px 16px; }
-    .pm-item:hover { background: rgba(124,106,245,0.08); }
-    .pm-item.active { background: rgba(124,106,245,0.15); }
-    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-    .btn-download { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: linear-gradient(135deg,#5b8dee,#7c6af5); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: opacity 0.15s, transform 0.15s; letter-spacing: 0.2px; box-shadow: 0 2px 10px rgba(124,106,245,0.3); }
-    .btn-download:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,106,245,0.4); }
-    input[type=number], input[type=text], select { background: #1a1a2e !important; border: 1px solid rgba(255,255,255,0.08) !important; color: #c8c6e4 !important; }
-    option { background: #1a1a2e; color: #c8c6e4; }
+    .pm-item:hover { background: rgba(123,95,255,0.07); }
+    .pm-item.active { background: rgba(123,95,255,0.14); border-left-color: #7B5FFF; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .btn-download { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; background: #7B5FFF; color: #fff; border: none; border-radius: 9px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.15s; letter-spacing: 0.3px; box-shadow: 0 0 20px rgba(123,95,255,0.35); }
+    .btn-download:hover { background: #8f74ff; transform: translateY(-1px); box-shadow: 0 0 28px rgba(123,95,255,0.5); }
+    input[type=number], input[type=text], select { background: #091626 !important; border: 1px solid rgba(148,163,184,0.1) !important; color: #CBD5E1 !important; }
+    option { background: #071120; color: #94A3B8; }
+    th { color: #475569 !important; }
   </style>
 </head>
 <body>
@@ -40,13 +43,35 @@ const { useState, useEffect, useMemo, useCallback, useRef } = React;
 const API_DATES  = 'https://community-prod-n8n.pattern.com/webhook/tts-proxy-dates';
 const API_REPORT = 'https://community-prod-n8n.pattern.com/webhook/tts-proxy-report';
 const VIDEO_GOAL = 100;
-const PM_COLORS  = ['#5b8dee','#3dba7c','#f0a03a','#e85c5c','#8b6ee8','#26bfa8','#e06ba0','#7ac94e','#f07842','#20b2aa','#7c86f5','#f5607a'];
+const PM_COLORS  = ['#7B5FFF','#38BDF8','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#84CC16','#F97316','#14B8A6','#6366F1','#EC4899'];
 const PERIODS    = [['daily','Daily'],['7d','Last 7 Days'],['mtd','MTD'],['30d','Last 30 Days']];
 const PERIOD_LABEL = { daily:'Today', '7d':'Last 7 Days', mtd:'Month to Date', '30d':'Last 30 Days' };
 
 // ─── LocalStorage helpers ─────────────────────────────────────────────────────
 const lsGet = (k, def) => { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : def; } catch { return def; } };
 const lsSet = (k, v)   => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+// ─── Cache & Throttle ────────────────────────────────────────────────────────
+const CACHE_TTL = 12 * 60 * 60 * 1000; // 12h
+const cKey = url => 'tts_c_' + url.slice(-55).replace(/\W/g,'_');
+const cachedFetch = async url => {
+  const k = cKey(url), c = lsGet(k, null);
+  if (c && Date.now()-c.ts < CACHE_TTL) return c.data;
+  const data = await fetch(url).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
+  lsSet(k, { ts: Date.now(), data });
+  return data;
+};
+let _tActive = 0; const _tQueue = [];
+const _tRun = () => { while(_tActive<3&&_tQueue.length){const{fn,res,rej}=_tQueue.shift();_tActive++;fn().then(res).catch(rej).finally(()=>{_tActive--;_tRun();}); } };
+const tFetch = fn => new Promise((res,rej)=>{ _tQueue.push({fn,res,rej}); _tRun(); });
+const clearCache = () => { Object.keys(localStorage).filter(k=>k.startsWith('tts_c_')).forEach(k=>localStorage.removeItem(k)); };
+
+// ─── Lifecycle config ─────────────────────────────────────────────────────────
+const LC = {
+  active:  { label:'Active',  color:'#10B981', bg:'rgba(16,185,129,0.1)',  dot:'●' },
+  paused:  { label:'Paused',  color:'#F59E0B', bg:'rgba(245,158,11,0.1)',  dot:'⏸' },
+  churned: { label:'Churned', color:'#64748B', bg:'rgba(100,116,139,0.1)', dot:'○' },
+};
 
 // ─── Migration ────────────────────────────────────────────────────────────────
 (function migrate() {
@@ -83,7 +108,7 @@ const fmt$   = v => (v==null||isNaN(v)) ? '—' : '$'+Number(v).toLocaleString('
 const fmtN   = v => (v==null||isNaN(v)) ? '—' : Number(v).toLocaleString();
 const fmtPct = v => (v==null||isNaN(v)) ? '—' : (v*100).toFixed(1)+'%';
 const fmtDod = v => { if (v==null||isNaN(v)) return '—'; const p=(v*100).toFixed(1); return (v>0?'+':'')+p+'%'; };
-const dodColor = v => !v&&v!==0 ? '#52507a' : v>0 ? '#3dba7c' : v<0 ? '#e85c5c' : '#52507a';
+const dodColor = v => !v&&v!==0 ? '#64748B' : v>0 ? '#10B981' : v<0 ? '#EF4444' : '#64748B';
 const initials = name => name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 
 // ─── Default PMs ─────────────────────────────────────────────────────────────
@@ -160,15 +185,31 @@ function App() {
   const [aggLoading, setAggLoading] = useState(false);
   const [videoData, setVideoData]   = useState({});
   const [videoLoading, setVideoLoading] = useState(false);
+  const [brandLifecycle, setBrandLifecycle] = useState(() => lsGet('tts_brand_lifecycle', {}));
+  const [customBrands, setCustomBrands]     = useState(() => lsGet('tts_custom_brands', []));
+  const [prioritySet, setPrioritySet]       = useState(() => new Set(lsGet('tts_priority_brands', [])));
+
+  // Detect PM share mode from URL (?pm=oshin)
+  const sharedPmId = useMemo(() => new URLSearchParams(window.location.search).get('pm') || '', []);
+  const isShareMode = !!sharedPmId;
 
   useEffect(() => lsSet('tts_pms', pms),       [pms]);
   useEffect(() => lsSet('tts_brand_map', brandMap), [brandMap]);
   useEffect(() => lsSet('tts_goals', goals),   [goals]);
+  useEffect(() => lsSet('tts_brand_lifecycle', brandLifecycle), [brandLifecycle]);
+  useEffect(() => lsSet('tts_custom_brands', customBrands),     [customBrands]);
+  useEffect(() => lsSet('tts_priority_brands', [...prioritySet]), [prioritySet]);
+
+  const togglePriority = useCallback(brand => {
+    setPrioritySet(prev => { const n = new Set(prev); n.has(brand) ? n.delete(brand) : n.size < 20 ? n.add(brand) : null; return n; });
+  }, []);
+  const setLifecycle = useCallback((brand, lc) => setBrandLifecycle(prev => ({ ...prev, [brand]: lc })), []);
+  const addCustomBrand = useCallback((brand) => setCustomBrands(prev => prev.find(b=>b.name===brand.name) ? prev : [...prev, brand]), []);
+  const removeCustomBrand = useCallback((name) => setCustomBrands(prev => prev.filter(b=>b.name!==name)), []);
 
   useEffect(() => {
     setApiError('');
-    fetch(API_DATES)
-      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    cachedFetch(API_DATES)
       .then(d => { const list = Array.isArray(d) ? d : (d.dates||[]); setDates(list); if (list.length) setDate(list[0]); })
       .catch(() => setApiError('CORS_OR_NETWORK'));
   }, []);
@@ -176,8 +217,7 @@ function App() {
   useEffect(() => {
     if (!date) return;
     setLoading(true); setApiError('');
-    fetch(`${API_REPORT}?date=${date}`)
-      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    cachedFetch(`${API_REPORT}?date=${date}`)
       .then(d => { setReport(Array.isArray(d) ? d : []); setLoading(false); })
       .catch(() => { setApiError('CORS_OR_NETWORK'); setLoading(false); });
   }, [date]);
@@ -190,12 +230,12 @@ function App() {
     if (period === '7d')  toFetch = dates.slice(0,7);
     else if (period === 'mtd') { const m = today.slice(0,7); toFetch = dates.filter(d=>d.startsWith(m)); }
     else if (period === '30d') toFetch = dates.slice(0,30);
-    Promise.all(toFetch.map(d => fetch(`${API_REPORT}?date=${d}`).then(r=>r.json()).catch(()=>[])))
+    Promise.all(toFetch.map(d => tFetch(() => cachedFetch(`${API_REPORT}?date=${d}`)).catch(()=>[])))
       .then(all => { setAggReport(aggregateData(all.flat())); setAggLoading(false); });
   }, [period, dates]);
 
   useEffect(() => {
-    if (view !== 'video' || !dates.length) return;
+    if ((view !== 'video' && view !== 'priority') || !dates.length) return;
     const today        = dates[0];
     const currentMonth = today.slice(0,7);
     const dayOfMonth   = parseInt(today.slice(8,10));
@@ -207,7 +247,7 @@ function App() {
     const missing      = allNeeded.filter(d => !videoData[d]);
     if (!missing.length) return;
     setVideoLoading(true);
-    Promise.all(missing.map(d => fetch(`${API_REPORT}?date=${d}`).then(r=>r.json()).catch(()=>[])))
+    Promise.all(missing.map(d => tFetch(() => cachedFetch(`${API_REPORT}?date=${d}`)).catch(()=>[])))
       .then(results => {
         setVideoData(prev => {
           const next = { ...prev };
@@ -256,6 +296,18 @@ function App() {
     });
   }, [selectedPm, unassigned, getPmBrands, byBrand, sortBy, sortDir, goals]);
 
+  // In share mode, auto-select the shared PM
+  const sharedPm = isShareMode ? pms.find(p => p.id === sharedPmId) : null;
+
+  if (isShareMode && sharedPm) {
+    const pmBrands = getPmBrands(sharedPm.id);
+    return (
+      <div style={{ minHeight:'100vh', background:'#030b18', backgroundImage:'radial-gradient(ellipse 80% 40% at 50% -5%, rgba(123,95,255,0.13) 0%, transparent 60%)' }}>
+        <PMShareView pm={sharedPm} brands={pmBrands} byBrand={byBrand} goals={goals} updateGoal={updateGoal} brandLifecycle={brandLifecycle} period={period} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100vh' }}>
       <Header
@@ -271,13 +323,14 @@ function App() {
         )}
         <main style={{ flex:1, overflowY:'auto', padding:'28px 32px' }}>
           {apiError === 'CORS_OR_NETWORK' ? <CorsError /> :
-           view === 'video'   ? <VideoTracker dates={dates} videoData={videoData} videoLoading={videoLoading} pms={pms} brandMap={brandMap} goals={goals} updateGoal={updateGoal} /> :
-           view === 'manager' ? <ManagerView pms={pms} getPmStats={getPmStats} getPmBrands={getPmBrands} byBrand={byBrand} goals={goals} period={period} onDrillIn={pm=>{setSelectedPm(pm);setView('pm');}} /> :
-           selectedPm         ? <PMView pm={selectedPm} brands={sortedBrands} byBrand={byBrand} goals={goals} updateGoal={updateGoal} sortBy={sortBy} sortDir={sortDir} handleSort={handleSort} stats={getPmStats(selectedPm.id)} period={period} /> :
+           view === 'video'    ? <VideoTracker dates={dates} videoData={videoData} videoLoading={videoLoading} pms={pms} brandMap={brandMap} goals={goals} updateGoal={updateGoal} brandLifecycle={brandLifecycle} setLifecycle={setLifecycle} prioritySet={prioritySet} togglePriority={togglePriority} /> :
+           view === 'priority' ? <PriorityView dates={dates} videoData={videoData} videoLoading={videoLoading} pms={pms} brandMap={brandMap} goals={goals} brandLifecycle={brandLifecycle} prioritySet={prioritySet} togglePriority={togglePriority} setView={setView} /> :
+           view === 'manager'  ? <ManagerView pms={pms} getPmStats={getPmStats} getPmBrands={getPmBrands} byBrand={byBrand} goals={goals} period={period} onDrillIn={pm=>{setSelectedPm(pm);setView('pm');}} brandLifecycle={brandLifecycle} /> :
+           selectedPm          ? <PMView pm={selectedPm} brands={sortedBrands} byBrand={byBrand} goals={goals} updateGoal={updateGoal} sortBy={sortBy} sortDir={sortDir} handleSort={handleSort} stats={getPmStats(selectedPm.id)} period={period} brandLifecycle={brandLifecycle} /> :
            <EmptyState />}
         </main>
       </div>
-      {showSettings && <SettingsModal pms={pms} setPms={setPms} brandList={brandList} brandMap={brandMap} assignBrand={assignBrand} onClose={()=>setShowSettings(false)} />}
+      {showSettings && <SettingsModal pms={pms} setPms={setPms} brandList={brandList} brandMap={brandMap} assignBrand={assignBrand} brandLifecycle={brandLifecycle} setLifecycle={setLifecycle} customBrands={customBrands} addCustomBrand={addCustomBrand} removeCustomBrand={removeCustomBrand} prioritySet={prioritySet} onClearCache={()=>{clearCache();alert('Cache cleared. Data will refresh on next load.');}} onClose={()=>setShowSettings(false)} />
     </div>
   );
 }
@@ -289,41 +342,49 @@ function Header({ dates, date, setDate, view, setView, period, setPeriod, loadin
   const NavBtn = ({ v, label }) => (
     <button onClick={() => setView(v)} style={{
       padding:'6px 16px',
-      background: view===v ? 'rgba(124,106,245,0.15)' : 'transparent',
-      color: view===v ? '#a394f8' : '#52507a',
+      background: view===v ? 'rgba(123,95,255,0.16)' : 'transparent',
+      color: view===v ? '#a58bff' : '#64748B',
       border:'none', cursor:'pointer', fontSize:'13px',
-      fontWeight: view===v ? 700 : 500, borderRadius:'6px', transition:'all 0.15s', whiteSpace:'nowrap'
+      fontWeight: view===v ? 700 : 500, borderRadius:'7px', transition:'all 0.15s', whiteSpace:'nowrap'
     }}>{label}</button>
   );
   return (
-    <header style={{ background:'#0c0c18', borderBottom:'1px solid rgba(255,255,255,0.05)', padding:'0 20px', display:'flex', alignItems:'center', gap:'8px', height:'54px', flexShrink:0, overflowX:'auto', boxShadow:'0 1px 12px rgba(0,0,0,0.6)' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0, marginRight:'8px' }}>
-        <div style={{ width:'28px', height:'28px', borderRadius:'8px', background:'linear-gradient(135deg,#5b8dee,#8b6ee8)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px' }}>📊</div>
-        <span style={{ fontWeight:800, fontSize:'15px', color:'#e8e6f4', letterSpacing:'-0.3px' }}>TTS Ops</span>
+    <header style={{ background:'rgba(3,11,24,0.88)', backdropFilter:'blur(14px)', borderBottom:'1px solid rgba(148,163,184,0.08)', padding:'0 20px', display:'flex', alignItems:'center', gap:'8px', height:'56px', flexShrink:0, overflowX:'auto' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'9px', flexShrink:0, marginRight:'8px' }}>
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M11 2L20 11L11 20L2 11L11 2Z" fill="url(#pg-hdr)" />
+          <defs>
+            <linearGradient id="pg-hdr" x1="2" y1="2" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#38BDF8"/><stop offset="1" stopColor="#7B5FFF"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span style={{ fontWeight:800, fontSize:'15px', color:'#F1F5F9', letterSpacing:'-0.3px' }}>TTS Ops</span>
       </div>
-      <div style={{ width:'1px', height:'20px', background:'rgba(255,255,255,0.07)', flexShrink:0, margin:'0 4px' }} />
+      <div style={{ width:'1px', height:'20px', background:'rgba(148,163,184,0.1)', flexShrink:0, margin:'0 4px' }} />
       <div style={{ display:'flex', gap:'2px', flexShrink:0 }}>
-        <NavBtn v="pm"      label="PM View" />
-        <NavBtn v="manager" label="Manager" />
-        <NavBtn v="video"   label="📹 Video Tracker" />
+        <NavBtn v="pm"       label="PM View" />
+        <NavBtn v="manager"  label="Manager" />
+        <NavBtn v="video"    label="📹 Videos" />
+        <NavBtn v="priority" label="⭐ Priority" />
       </div>
-      <div style={{ width:'1px', height:'20px', background:'rgba(255,255,255,0.07)', flexShrink:0, margin:'0 4px' }} />
+      <div style={{ width:'1px', height:'20px', background:'rgba(148,163,184,0.1)', flexShrink:0, margin:'0 4px' }} />
       {view !== 'video' && <>
         {period === 'daily' && (
-          <select value={date} onChange={e=>setDate(e.target.value)} style={{ background:'#13131f', border:'1px solid rgba(255,255,255,0.07)', color:'#c8c6e4', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer', flexShrink:0 }}>
+          <select value={date} onChange={e=>setDate(e.target.value)} style={{ background:'#071120', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer', flexShrink:0 }}>
             {dates.map(d=><option key={d} value={d}>{d}</option>)}
           </select>
         )}
-        <div style={{ display:'flex', background:'#13131f', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'7px', overflow:'hidden', flexShrink:0 }}>
+        <div style={{ display:'flex', background:'#071120', border:'1px solid rgba(148,163,184,0.1)', borderRadius:'8px', overflow:'hidden', flexShrink:0 }}>
           {PERIODS.map(([v,l]) => (
-            <button key={v} onClick={()=>setPeriod(v)} style={{ padding:'5px 11px', background:period===v?'#7c6af5':'transparent', color:period===v?'#fff':'#52507a', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:period===v?700:400, transition:'all 0.15s', whiteSpace:'nowrap' }}>{l}</button>
+            <button key={v} onClick={()=>setPeriod(v)} style={{ padding:'5px 11px', background:period===v?'#7B5FFF':'transparent', color:period===v?'#fff':'#64748B', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:period===v?700:400, transition:'all 0.15s', whiteSpace:'nowrap' }}>{l}</button>
           ))}
         </div>
       </>}
       <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'10px', flexShrink:0 }}>
-        {loading && <span style={{ color:'#3d3b5c', fontSize:'12px', display:'flex', alignItems:'center', gap:'5px' }}><Spinner />Loading...</span>}
-        <button onClick={onSettings} style={{ background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#52507a', padding:'5px 13px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', transition:'all 0.15s' }}
-          onMouseEnter={e=>e.target.style.color='#e8e6f4'} onMouseLeave={e=>e.target.style.color='#52507a'}>
+        {loading && <span style={{ color:'#475569', fontSize:'12px', display:'flex', alignItems:'center', gap:'5px' }}><Spinner />Loading...</span>}
+        <button onClick={onSettings} style={{ background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#64748B', padding:'5px 13px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', transition:'all 0.15s' }}
+          onMouseEnter={e=>e.target.style.color='#F1F5F9'} onMouseLeave={e=>e.target.style.color='#64748B'}>
           ⚙ Settings
         </button>
       </div>
@@ -336,30 +397,30 @@ function Header({ dates, date, setDate, view, setView, period, setPeriod, loadin
 // ════════════════════════════════════════════════════════════════════════════
 function Sidebar({ pms, selectedPm, setSelectedPm, getPmStats, unassignedCount }) {
   return (
-    <aside style={{ width:'220px', background:'#0a0a16', borderRight:'1px solid rgba(255,255,255,0.05)', overflowY:'auto', flexShrink:0 }}>
-      <div style={{ padding:'14px 16px 8px', fontSize:'10px', fontWeight:700, color:'#3d3b5c', textTransform:'uppercase', letterSpacing:'1px' }}>Project Managers</div>
+    <aside style={{ width:'220px', background:'#050d1c', borderRight:'1px solid rgba(148,163,184,0.06)', overflowY:'auto', flexShrink:0 }}>
+      <div style={{ padding:'14px 16px 8px', fontSize:'10px', fontWeight:700, color:'#475569', textTransform:'uppercase', letterSpacing:'1px' }}>Project Managers</div>
       {pms.map(pm => {
         const s = getPmStats(pm.id);
         const active = selectedPm?.id === pm.id;
         return (
           <div key={pm.id} className={`pm-item${active?' active':''}`} onClick={()=>setSelectedPm(pm)} style={{ borderLeftColor: active ? pm.color : 'transparent' }}>
             <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-              <div style={{ width:'30px', height:'30px', borderRadius:'8px', background:`${pm.color}22`, border:`1px solid ${pm.color}55`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:700, color:pm.color, flexShrink:0 }}>{initials(pm.name)}</div>
+              <div style={{ width:'30px', height:'30px', borderRadius:'8px', background:`${pm.color}22`, border:`1px solid ${pm.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:700, color:pm.color, flexShrink:0 }}>{initials(pm.name)}</div>
               <div>
-                <div style={{ fontWeight:600, fontSize:'13px', color: active?'#e8e6f4':'#d0cef4', lineHeight:1.2 }}>{pm.name}</div>
-                <div style={{ fontSize:'11px', color:'#3d3b5c', marginTop:'1px' }}>{s.brands} brands · {fmt$(s.gmv)}</div>
+                <div style={{ fontWeight:600, fontSize:'13px', color: active?'#F1F5F9':'#CBD5E1', lineHeight:1.2 }}>{pm.name}</div>
+                <div style={{ fontSize:'11px', color:'#475569', marginTop:'1px' }}>{s.brands} brands · {fmt$(s.gmv)}</div>
               </div>
             </div>
           </div>
         );
       })}
       {unassignedCount > 0 && (
-        <div className={`pm-item${selectedPm?.id==='__unassigned'?' active':''}`} onClick={()=>setSelectedPm({id:'__unassigned',name:'Unassigned',color:'#3d3b5c'})} style={{ marginTop:'8px', borderTop:'1px solid rgba(255,255,255,0.05)', borderLeftColor: selectedPm?.id==='__unassigned'?'#3d3b5c':'transparent' }}>
+        <div className={`pm-item${selectedPm?.id==='__unassigned'?' active':''}`} onClick={()=>setSelectedPm({id:'__unassigned',name:'Unassigned',color:'#475569'})} style={{ marginTop:'8px', borderTop:'1px solid rgba(148,163,184,0.05)', borderLeftColor: selectedPm?.id==='__unassigned'?'#475569':'transparent' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-            <div style={{ width:'30px', height:'30px', borderRadius:'8px', background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:700, color:'#3d3b5c' }}>?</div>
+            <div style={{ width:'30px', height:'30px', borderRadius:'8px', background:'#091626', border:'1px solid rgba(148,163,184,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:700, color:'#475569' }}>?</div>
             <div>
-              <div style={{ fontWeight:600, fontSize:'13px', color:'#3d3b5c' }}>Unassigned</div>
-              <div style={{ fontSize:'11px', color:'#2a2a45' }}>{unassignedCount} brands</div>
+              <div style={{ fontWeight:600, fontSize:'13px', color:'#475569' }}>Unassigned</div>
+              <div style={{ fontSize:'11px', color:'#334155' }}>{unassignedCount} brands</div>
             </div>
           </div>
         </div>
@@ -378,22 +439,22 @@ function PMView({ pm, brands, byBrand, goals, updateGoal, sortBy, sortDir, handl
       <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'24px' }}>
         <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:`${pm.color}22`, border:`1px solid ${pm.color}55`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', fontWeight:800, color:pm.color }}>{initials(pm.name)}</div>
         <div>
-          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#e8e6f4', letterSpacing:'-0.4px' }}>{pm.name}</h2>
-          <div style={{ fontSize:'12px', color:'#52507a' }}>{brands.length} brands · {PERIOD_LABEL[period]}</div>
+          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#F1F5F9', letterSpacing:'-0.4px' }}>{pm.name}</h2>
+          <div style={{ fontSize:'12px', color:'#64748B' }}>{brands.length} brands · {PERIOD_LABEL[period]}</div>
         </div>
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:'12px', marginBottom:'28px' }}>
-        <StatCard label="Total GMV"       value={fmt$(stats.gmv)}      color="#3dba7c" icon="💰" />
-        <StatCard label="New Videos"      value={fmtN(stats.videos)}   color="#5b8dee" icon="🎬" />
-        <StatCard label="Sample Requests" value={fmtN(stats.req)}      color="#8b6ee8" icon="📦" />
-        <StatCard label="Approved"        value={fmtN(stats.approved)} color="#f0a03a" icon="✅" />
-        {goalPct !== null && <StatCard label="Goal Progress" value={`${stats.approved} / ${stats.goal}`} sub={`${goalPct.toFixed(0)}% of goal`} color={goalPct>=100?'#3dba7c':goalPct>=60?'#f0a03a':'#e85c5c'} icon="🎯" bar={goalPct} />}
+        <StatCard label="Total GMV"       value={fmt$(stats.gmv)}      color="#10B981" icon="💰" />
+        <StatCard label="New Videos"      value={fmtN(stats.videos)}   color="#38BDF8" icon="🎬" />
+        <StatCard label="Sample Requests" value={fmtN(stats.req)}      color="#7B5FFF" icon="📦" />
+        <StatCard label="Approved"        value={fmtN(stats.approved)} color="#F59E0B" icon="✅" />
+        {goalPct !== null && <StatCard label="Goal Progress" value={`${stats.approved} / ${stats.goal}`} sub={`${goalPct.toFixed(0)}% of goal`} color={goalPct>=100?'#10B981':goalPct>=60?'#F59E0B':'#EF4444'} icon="🎯" bar={goalPct} />}
       </div>
       <div className="card" style={{ overflow:'hidden' }}>
         <div style={{ overflowX:'auto' }}>
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
             <thead>
-              <tr style={{ background:'#13131f', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
+              <tr style={{ background:'#050c17', borderBottom:'1px solid rgba(148,163,184,0.1)' }}>
                 <Th label="Brand" />
                 <Th label="Videos"    col="videos"   sortBy={sortBy} sortDir={sortDir} onSort={handleSort} right />
                 {period==='daily' && <Th label="DoD%" col="dod" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} right />}
@@ -409,21 +470,21 @@ function PMView({ pm, brands, byBrand, goals, updateGoal, sortBy, sortDir, handl
                 const d = byBrand[brand];
                 const g = parseInt(goals[brand]||0);
                 const pct = g>0&&d ? Math.min(100,((d.sample_approved||0)/g)*100) : null;
-                const bc = pct==null?'':pct>=100?'#3dba7c':pct>=60?'#f0a03a':'#e85c5c';
+                const bc = pct==null?'':pct>=100?'#10B981':pct>=60?'#F59E0B':'#EF4444';
                 return (
-                  <tr key={brand} className="hover-row" style={{ borderBottom:'1px solid #f2f0fb', background:'transparent' }}>
-                    <td style={{ padding:'10px 14px', color:'#e8e6f4', fontWeight:600, whiteSpace:'nowrap' }}>{brand}</td>
-                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#9896b8' }}>{fmtN(d?.new_videos)}</td>
+                  <tr key={brand} className="hover-row" style={{ borderBottom:'1px solid rgba(148,163,184,0.06)', background:'transparent' }}>
+                    <td style={{ padding:'10px 14px', color:'#F1F5F9', fontWeight:600, whiteSpace:'nowrap' }}>{brand}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#94A3B8' }}>{fmtN(d?.new_videos)}</td>
                     {period==='daily' && <td style={{ padding:'10px 14px', textAlign:'right', color:dodColor(d?.dod), fontWeight:700 }}>{fmtDod(d?.dod)}</td>}
-                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#3dba7c', fontWeight:700 }}>{fmt$(d?.gmv)}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#10B981', fontWeight:700 }}>{fmt$(d?.gmv)}</td>
                     <td style={{ padding:'10px 14px', textAlign:'right' }}>{fmtN(d?.sample_request)}</td>
                     <td style={{ padding:'10px 14px', textAlign:'right' }}>{fmtN(d?.sample_approved)}</td>
                     <td style={{ padding:'10px 14px', minWidth:'190px' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:'7px' }}>
                         <input type="number" min="0" value={goals[brand]||''} onChange={e=>updateGoal(brand,e.target.value)} placeholder="Set goal"
-                          style={{ width:'68px', background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'3px 7px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }} />
+                          style={{ width:'68px', background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'3px 7px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }} />
                         {pct!==null && <>
-                          <div style={{ flex:1, background:'#1a1a2e', borderRadius:'4px', height:'5px', minWidth:'50px' }}>
+                          <div style={{ flex:1, background:'#091626', borderRadius:'4px', height:'5px', minWidth:'50px' }}>
                             <div style={{ height:'100%', borderRadius:'4px', width:`${pct}%`, background:bc, transition:'width 0.3s' }} />
                           </div>
                           <span style={{ fontSize:'11px', color:bc, minWidth:'32px', fontWeight:700 }}>{pct.toFixed(0)}%</span>
@@ -437,7 +498,7 @@ function PMView({ pm, brands, byBrand, goals, updateGoal, sortBy, sortDir, handl
                   </tr>
                 );
               })}
-              {brands.length===0 && <tr><td colSpan={11} style={{ padding:'40px', textAlign:'center', color:'#3d3b5c' }}>No brands assigned. Use ⚙ Settings → Assign Brands.</td></tr>}
+              {brands.length===0 && <tr><td colSpan={11} style={{ padding:'40px', textAlign:'center', color:'#475569' }}>No brands assigned. Use ⚙ Settings → Assign Brands.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -457,57 +518,57 @@ function ManagerView({ pms, getPmStats, getPmBrands, byBrand, goals, onDrillIn, 
     <div className="fade-in">
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'24px' }}>
         <div>
-          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#e8e6f4', letterSpacing:'-0.4px' }}>Manager Overview</h2>
-          <div style={{ fontSize:'12px', color:'#52507a', marginTop:'2px' }}>{PERIOD_LABEL[period]} · {pms.length} PMs · {pms.reduce((a,pm)=>a+getPmStats(pm.id).brands,0)} brands</div>
+          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#F1F5F9', letterSpacing:'-0.4px' }}>Manager Overview</h2>
+          <div style={{ fontSize:'12px', color:'#64748B', marginTop:'2px' }}>{PERIOD_LABEL[period]} · {pms.length} PMs · {pms.reduce((a,pm)=>a+getPmStats(pm.id).brands,0)} brands</div>
         </div>
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:'12px', marginBottom:'32px' }}>
-        <StatCard label="Portfolio GMV"    value={fmt$(allStats.gmv)}      color="#3dba7c" icon="💰" />
-        <StatCard label="Total Videos"     value={fmtN(allStats.videos)}   color="#5b8dee" icon="🎬" />
-        <StatCard label="Sample Requests"  value={fmtN(allStats.req)}      color="#8b6ee8" icon="📦" />
-        <StatCard label="Total Approved"   value={fmtN(allStats.approved)} color="#f0a03a" icon="✅" />
-        {allStats.goal>0 && <StatCard label="Portfolio Goal" value={`${allStats.approved}/${allStats.goal}`} sub={`${Math.min(100,allStats.approved/allStats.goal*100).toFixed(0)}%`} color={allStats.approved/allStats.goal>=1?'#3dba7c':allStats.approved/allStats.goal>=0.6?'#f0a03a':'#e85c5c'} icon="🎯" bar={Math.min(100,allStats.approved/allStats.goal*100)} />}
+        <StatCard label="Portfolio GMV"    value={fmt$(allStats.gmv)}      color="#10B981" icon="💰" />
+        <StatCard label="Total Videos"     value={fmtN(allStats.videos)}   color="#38BDF8" icon="🎬" />
+        <StatCard label="Sample Requests"  value={fmtN(allStats.req)}      color="#7B5FFF" icon="📦" />
+        <StatCard label="Total Approved"   value={fmtN(allStats.approved)} color="#F59E0B" icon="✅" />
+        {allStats.goal>0 && <StatCard label="Portfolio Goal" value={`${allStats.approved}/${allStats.goal}`} sub={`${Math.min(100,allStats.approved/allStats.goal*100).toFixed(0)}%`} color={allStats.approved/allStats.goal>=1?'#10B981':allStats.approved/allStats.goal>=0.6?'#F59E0B':'#EF4444'} icon="🎯" bar={Math.min(100,allStats.approved/allStats.goal*100)} />}
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(310px,1fr))', gap:'16px' }}>
         {pms.map(pm => {
           const s = getPmStats(pm.id);
           const brands = getPmBrands(pm.id);
           const goalPct = s.goal>0 ? Math.min(100,(s.approved/s.goal)*100) : null;
-          const bc = goalPct==null?'':goalPct>=100?'#3dba7c':goalPct>=60?'#f0a03a':'#e85c5c';
+          const bc = goalPct==null?'':goalPct>=100?'#10B981':goalPct>=60?'#F59E0B':'#EF4444';
           const top = [...brands].sort((a,b)=>(byBrand[b]?.gmv||0)-(byBrand[a]?.gmv||0)).slice(0,3);
           return (
-            <div key={pm.id} onClick={()=>onDrillIn(pm)} style={{ background:'#111120', border:'1px solid rgba(255,255,255,0.07)', borderTop:`3px solid ${pm.color}`, borderRadius:'12px', padding:'18px', cursor:'pointer', transition:'transform 0.15s, box-shadow 0.15s', boxShadow:'0 1px 5px rgba(0,0,0,0.4)' }}
-              onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow=`0 8px 24px rgba(124,106,245,0.25)`; }}
-              onMouseLeave={e=>{ e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='0 1px 5px rgba(0,0,0,0.4)'; }}>
+            <div key={pm.id} onClick={()=>onDrillIn(pm)} style={{ background:'#071120', border:'1px solid rgba(148,163,184,0.08)', borderTop:`3px solid ${pm.color}`, borderRadius:'12px', padding:'18px', cursor:'pointer', transition:'transform 0.15s, box-shadow 0.15s, border-color 0.15s' }}
+              onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow=`0 8px 28px rgba(123,95,255,0.22)`; e.currentTarget.style.borderColor=`rgba(123,95,255,0.2)`; }}
+              onMouseLeave={e=>{ e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=''; e.currentTarget.style.borderColor='rgba(148,163,184,0.08)'; }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'16px' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                   <div style={{ width:'34px', height:'34px', borderRadius:'9px', background:`${pm.color}22`, border:`1px solid ${pm.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:800, color:pm.color }}>{initials(pm.name)}</div>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:'15px', color:'#e8e6f4' }}>{pm.name}</div>
-                    <div style={{ fontSize:'11px', color:'#52507a' }}>{s.brands} brands</div>
+                    <div style={{ fontWeight:700, fontSize:'15px', color:'#F1F5F9' }}>{pm.name}</div>
+                    <div style={{ fontSize:'11px', color:'#64748B' }}>{s.brands} brands</div>
                   </div>
                 </div>
                 <div style={{ textAlign:'right' }}>
-                  <div style={{ fontSize:'19px', fontWeight:800, color:'#3dba7c' }}>{fmt$(s.gmv)}</div>
-                  <div style={{ fontSize:'10px', color:'#52507a', textTransform:'uppercase', letterSpacing:'0.5px' }}>GMV</div>
+                  <div style={{ fontSize:'19px', fontWeight:800, color:'#10B981' }}>{fmt$(s.gmv)}</div>
+                  <div style={{ fontSize:'10px', color:'#64748B', textTransform:'uppercase', letterSpacing:'0.5px' }}>GMV</div>
                 </div>
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'10px', marginBottom:'14px' }}>
-                <MiniStat label="Videos"   value={fmtN(s.videos)}   color="#5b8dee" />
-                <MiniStat label="Req"      value={fmtN(s.req)}      color="#8b6ee8" />
-                <MiniStat label="Approved" value={fmtN(s.approved)} color="#f0a03a" />
+                <MiniStat label="Videos"   value={fmtN(s.videos)}   color="#38BDF8" />
+                <MiniStat label="Req"      value={fmtN(s.req)}      color="#7B5FFF" />
+                <MiniStat label="Approved" value={fmtN(s.approved)} color="#F59E0B" />
               </div>
               {goalPct!==null && (
                 <div style={{ marginBottom:'12px' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', color:'#52507a', marginBottom:'5px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', color:'#64748B', marginBottom:'5px' }}>
                     <span>Sample Goal</span><span style={{ color:bc, fontWeight:700 }}>{goalPct.toFixed(0)}%</span>
                   </div>
-                  <div style={{ background:'#1a1a2e', borderRadius:'4px', height:'4px' }}>
+                  <div style={{ background:'#091626', borderRadius:'4px', height:'4px' }}>
                     <div style={{ height:'100%', borderRadius:'4px', width:`${goalPct}%`, background:bc, transition:'width 0.3s' }} />
                   </div>
                 </div>
               )}
-              {top.length>0 && <div style={{ fontSize:'11px', color:'#3d3b5c', borderTop:'1px solid #f2f0fb', paddingTop:'10px' }}>Top: {top.join(' · ')}</div>}
+              {top.length>0 && <div style={{ fontSize:'11px', color:'#475569', borderTop:'1px solid rgba(148,163,184,0.06)', paddingTop:'10px' }}>Top: {top.join(' · ')}</div>}
             </div>
           );
         })}
@@ -520,10 +581,10 @@ function ManagerView({ pms, getPmStats, getPmBrands, byBrand, goals, onDrillIn, 
 // VIDEO TRACKER
 // ════════════════════════════════════════════════════════════════════════════
 const STATUS_CONFIG = {
-  active:   { label:'Active',      color:'#22c55e', bg:'rgba(34,197,94,0.12)',   icon:'✅' },
-  dipped:   { label:'Dipped',      color:'#ef4444', bg:'rgba(239,68,68,0.12)',   icon:'📉' },
-  pipeline: { label:'In Pipeline', color:'#f0a03a', bg:'rgba(240,160,58,0.12)', icon:'🔄' },
-  inactive: { label:'Inactive',    color:'#52507a', bg:'rgba(82,80,122,0.12)',   icon:'💤' },
+  active:   { label:'Active',      color:'#10B981', bg:'rgba(16,185,129,0.12)',  icon:'✅' },
+  dipped:   { label:'Dipped',      color:'#EF4444', bg:'rgba(239,68,68,0.12)',   icon:'📉' },
+  pipeline: { label:'In Pipeline', color:'#F59E0B', bg:'rgba(245,158,11,0.12)',  icon:'🔄' },
+  inactive: { label:'Inactive',    color:'#64748B', bg:'rgba(71,85,105,0.12)',   icon:'💤' },
 };
 
 function computeBrandVideoStatus(brand, dates, videoData) {
@@ -538,12 +599,13 @@ function computeBrandVideoStatus(brand, dates, videoData) {
   return 'active';
 }
 
-function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, updateGoal }) {
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [pmFilter, setPmFilter]         = useState('all');
-  const [vtSort, setVtSort]             = useState('avg7d');
-  const [vtDir, setVtDir]               = useState('desc');
-  const [vtDate, setVtDate]             = useState('');  // '' = use latest
+function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, updateGoal, brandLifecycle, setLifecycle, prioritySet, togglePriority }) {
+  const [statusFilter, setStatusFilter]   = useState('all');
+  const [lcFilter, setLcFilter]           = useState('active'); // lifecycle filter
+  const [pmFilter, setPmFilter]           = useState('all');
+  const [vtSort, setVtSort]               = useState('avg7d');
+  const [vtDir, setVtDir]                 = useState('desc');
+  const [vtDate, setVtDate]               = useState('');
   const handleVtSort = col => { if(vtSort===col){setVtDir(d=>d==='desc'?'asc':'desc');}else{setVtSort(col);setVtDir('desc');} };
 
   const today        = dates[0] || '';
@@ -596,7 +658,13 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
 
   const statusCounts = brandAnalysis.reduce((acc,b)=>{ acc[b.status]=(acc[b.status]||0)+1; return acc; }, {});
   const filtered = useMemo(() => {
-    const arr = brandAnalysis.filter(b=>(statusFilter==='all'||b.status===statusFilter)&&(pmFilter==='all'||b.pmId===pmFilter));
+    const arr = brandAnalysis.filter(b=>{
+      const lc = brandLifecycle[b.brand] || 'active';
+      if (lcFilter !== 'all' && lc !== lcFilter) return false;
+      if (statusFilter !== 'all' && b.status !== statusFilter) return false;
+      if (pmFilter !== 'all' && b.pmId !== pmFilter) return false;
+      return true;
+    });
     return [...arr].sort((a,b)=>{
       let va,vb;
       if      (vtSort==='today')    { va=a.today;         vb=b.today; }
@@ -613,7 +681,7 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
   const brandsAtGoal   = brandAnalysis.filter(b=>b.today>=VIDEO_GOAL).length;
   const totalBrands    = brandAnalysis.length;
   const vtGoalPct      = totalBrands > 0 ? Math.min(100,(brandsAtGoal/totalBrands)*100) : 0;
-  const goalColor      = vtGoalPct>=80?'#3dba7c':vtGoalPct>=50?'#5b8dee':vtGoalPct>=30?'#f0a03a':'#e85c5c';
+  const goalColor      = vtGoalPct>=80?'#10B981':vtGoalPct>=50?'#38BDF8':vtGoalPct>=30?'#F59E0B':'#EF4444';
   const chartMax   = Math.max(...dailyTotals.map(d=>d.total), VIDEO_GOAL, 1);
 
   // ── Download CSV ──────────────────────────────────────────────────────────
@@ -653,7 +721,7 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
   };
 
   if (videoLoading && !allBrands.length) return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#3d3b5c' }}>
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#475569' }}>
       <Spinner size={24} /><span style={{ fontSize:'14px' }}>Loading video data…</span>
     </div>
   );
@@ -664,9 +732,9 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
     <div className="fade-in">
       {/* ── Title bar ── */}
       <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'24px', flexWrap:'wrap' }}>
-        <h2 style={{ fontSize:'20px', fontWeight:800, color:'#e8e6f4', letterSpacing:'-0.4px' }}>📹 Video Tracker</h2>
-        <span style={{ background:'#ede9ff', color:'#8b6ee8', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'20px' }}>100 Videos / Day Goal</span>
-        {videoLoading && <span style={{ display:'flex', alignItems:'center', gap:'5px', fontSize:'12px', color:'#3d3b5c' }}><Spinner />…</span>}
+        <h2 style={{ fontSize:'20px', fontWeight:800, color:'#F1F5F9', letterSpacing:'-0.4px' }}>📹 Video Tracker</h2>
+        <span style={{ background:'rgba(123,95,255,0.15)', color:'#a58bff', fontSize:'11px', fontWeight:700, padding:'3px 10px', borderRadius:'20px' }}>100 Videos / Day Goal</span>
+        {videoLoading && <span style={{ display:'flex', alignItems:'center', gap:'5px', fontSize:'12px', color:'#475569' }}><Spinner />…</span>}
         <div style={{ marginLeft:'auto' }}>
           <button className="btn-download" onClick={downloadCSV}>
             ⬇ Download Report
@@ -679,57 +747,69 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
         <div className="card" style={{ padding:'20px 24px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'8px', minWidth:'160px' }}>
           <DonutProgress value={brandsAtGoal} max={totalBrands} color={goalColor} label={`${brandsAtGoal}/${totalBrands}`} />
           <div style={{ textAlign:'center' }}>
-            <div style={{ fontSize:'13px', fontWeight:700, color:'#e8e6f4' }}>Brands at Goal</div>
-            <div style={{ fontSize:'11px', color:'#52507a' }}>≥{VIDEO_GOAL} videos/brand</div>
+            <div style={{ fontSize:'13px', fontWeight:700, color:'#F1F5F9' }}>Brands at Goal</div>
+            <div style={{ fontSize:'11px', color:'#64748B' }}>≥{VIDEO_GOAL} videos/brand</div>
           </div>
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px' }}>
-          <StatCard label={vtDate ? vtDate.slice(5) : "Today"} value={vtTodayTotal.toString()} color="#5b8dee" icon="🎬" sub={`${brandsAtGoal} of ${totalBrands} brands at goal`} />
-          <StatCard label="7-Day Avg"   value={avg7d.toFixed(1)}           color="#5b8dee"   icon="📈" sub="daily avg (videos)" />
-          <StatCard label="MTD Avg"     value={mtdPortfolioAvg.toFixed(1)} color="#8b6ee8"   icon="📅" sub={`${mtdDates.length}d elapsed · ${mtdPortfolioTotal} total`} />
-          <StatCard label="In Pipeline" value={(statusCounts.pipeline||0).toString()} color="#f0a03a" icon="🔄" sub="samples ready, no videos" />
+          <StatCard label={vtDate ? vtDate.slice(5) : "Today"} value={vtTodayTotal.toString()} color="#38BDF8" icon="🎬" sub={`${brandsAtGoal} of ${totalBrands} brands at goal`} />
+          <StatCard label="7-Day Avg"   value={avg7d.toFixed(1)}           color="#38BDF8"   icon="📈" sub="daily avg (videos)" />
+          <StatCard label="MTD Avg"     value={mtdPortfolioAvg.toFixed(1)} color="#7B5FFF"   icon="📅" sub={`${mtdDates.length}d elapsed · ${mtdPortfolioTotal} total`} />
+          <StatCard label="In Pipeline" value={(statusCounts.pipeline||0).toString()} color="#F59E0B" icon="🔄" sub="samples ready, no videos" />
         </div>
         <div className="card" style={{ padding:'16px 20px', minWidth:'260px' }}>
-          <div style={{ fontSize:'11px', fontWeight:700, color:'#3d3b5c', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'10px' }}>Last 7 Days Portfolio</div>
+          <div style={{ fontSize:'11px', fontWeight:700, color:'#475569', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'10px' }}>Last 7 Days Portfolio</div>
           <div style={{ display:'flex', alignItems:'flex-end', gap:'6px', height:'60px' }}>
             {dailyTotals.slice().reverse().map((d,i)=>{
               const h=Math.max(2,(d.total/chartMax)*60), isToday=i===dailyTotals.length-1;
-              const col=d.total>=VIDEO_GOAL?'#3dba7c':d.total>=VIDEO_GOAL*0.7?'#5b8dee':'#f0a03a';
+              const col=d.total>=VIDEO_GOAL?'#10B981':d.total>=VIDEO_GOAL*0.7?'#38BDF8':'#F59E0B';
               return (
                 <div key={d.date} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }}>
                   <div style={{ width:'100%', height:`${h}px`, background:col, borderRadius:'3px 3px 0 0', opacity:isToday?1:0.55 }} title={`${d.date}: ${d.total}`} />
-                  <div style={{ fontSize:'9px', color:isToday?'#9896b8':'#3d3b5c', whiteSpace:'nowrap' }}>{d.date}</div>
+                  <div style={{ fontSize:'9px', color:isToday?'#94A3B8':'#475569', whiteSpace:'nowrap' }}>{d.date}</div>
                 </div>
               );
             })}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'8px' }}>
-            <div style={{ width:'16px', height:'2px', background:'#5b8dee', borderRadius:'1px' }} />
-            <span style={{ fontSize:'10px', color:'#3d3b5c' }}>100/day goal</span>
+            <div style={{ width:'16px', height:'2px', background:'#38BDF8', borderRadius:'1px' }} />
+            <span style={{ fontSize:'10px', color:'#475569' }}>100/day goal</span>
           </div>
         </div>
       </div>
 
+      {/* ── Lifecycle filter row ── */}
+      <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'10px', flexWrap:'wrap' }}>
+        <span style={{ fontSize:'11px', color:'#475569', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px' }}>Brand:</span>
+        {[['all','All'],['active','Active'],['paused','Paused'],['churned','Churned']].map(([v,l])=>(
+          <button key={v} onClick={()=>setLcFilter(v)} style={{ padding:'4px 11px', borderRadius:'20px', fontSize:'12px', fontWeight:lcFilter===v?700:500, cursor:'pointer', border:'none',
+            background: lcFilter===v ? (LC[v]?.bg||'rgba(123,95,255,0.15)') : 'transparent',
+            color: lcFilter===v ? (LC[v]?.color||'#a58bff') : '#64748B',
+            outline: lcFilter===v ? `1px solid ${LC[v]?.color||'#7B5FFF'}55` : '1px solid rgba(148,163,184,0.1)',
+            transition:'all 0.15s' }}>{v!=='all'&&LC[v]?.dot+' '}{l}</button>
+        ))}
+      </div>
+
       {/* ── Filters row ── */}
       <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'16px', flexWrap:'wrap' }}>
-        <span style={{ fontSize:'11px', color:'#3d3b5c', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px' }}>Status:</span>
-        {[['all','All Brands',brandAnalysis.length],...Object.entries(STATUS_CONFIG).map(([k,v])=>[k,v.label,statusCounts[k]||0])].map(([v,l,cnt])=>(
-          <button key={v} onClick={()=>setStatusFilter(v)} style={{ padding:'5px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:statusFilter===v?700:500, cursor:'pointer', border:'none', background:statusFilter===v?(STATUS_CONFIG[v]?.bg||'#ede9ff'):'transparent', color:statusFilter===v?(STATUS_CONFIG[v]?.color||'#5b8dee'):'#52507a', outline:statusFilter===v?`1px solid ${STATUS_CONFIG[v]?.color||'#5b8dee'}55`:'1px solid rgba(255,255,255,0.07)', transition:'all 0.15s' }}>{l} <span style={{opacity:0.7}}>({cnt})</span></button>
+        <span style={{ fontSize:'11px', color:'#475569', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px' }}>Status:</span>
+        {[['all','All',brandAnalysis.filter(b=>(lcFilter==='all'||(brandLifecycle[b.brand]||'active')===lcFilter)).length],...Object.entries(STATUS_CONFIG).map(([k,v])=>[k,v.label,brandAnalysis.filter(b=>b.status===k&&(lcFilter==='all'||(brandLifecycle[b.brand]||'active')===lcFilter)).length])].map(([v,l,cnt])=>(
+          <button key={v} onClick={()=>setStatusFilter(v)} style={{ padding:'5px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:statusFilter===v?700:500, cursor:'pointer', border:'none', background:statusFilter===v?(STATUS_CONFIG[v]?.bg||'rgba(123,95,255,0.15)'):'transparent', color:statusFilter===v?(STATUS_CONFIG[v]?.color||'#a58bff'):'#64748B', outline:statusFilter===v?`1px solid ${STATUS_CONFIG[v]?.color||'#7B5FFF'}55`:'1px solid rgba(148,163,184,0.1)', transition:'all 0.15s' }}>{l} <span style={{opacity:0.7}}>({cnt})</span></button>
         ))}
 
         <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'8px' }}>
           {/* Date filter */}
           <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-            <span style={{ fontSize:'11px', color:'#3d3b5c', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px' }}>📅</span>
+            <span style={{ fontSize:'11px', color:'#475569', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px' }}>📅</span>
             <select value={vtDate} onChange={e=>setVtDate(e.target.value)}
-              style={{ background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
+              style={{ background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
               <option value="">Latest ({today})</option>
               {loadedDates.slice(1).map(d=><option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           {/* PM filter */}
           <select value={pmFilter} onChange={e=>setPmFilter(e.target.value)}
-            style={{ background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
+            style={{ background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'5px 10px', borderRadius:'7px', fontSize:'12px', cursor:'pointer' }}>
             <option value="all">All PMs</option>
             {pms.map(pm=><option key={pm.id} value={pm.id}>{pm.name}</option>)}
           </select>
@@ -741,8 +821,8 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
         <div style={{ overflowX:'auto' }}>
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
             <thead>
-              <tr style={{ background:'#13131f', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
-                <Th label="#" />
+              <tr style={{ background:'#050c17', borderBottom:'1px solid rgba(148,163,184,0.1)' }}>
+                <Th label="⭐" />
                 <Th label="Brand" />
                 <Th label="PM" />
                 <Th label={todayLabel}   col="today"    sortBy={vtSort} sortDir={vtDir} onSort={handleVtSort} right />
@@ -758,30 +838,47 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
             </thead>
             <tbody>
               {filtered.map((b, idx) => {
-                const sc    = STATUS_CONFIG[b.status];
-                const pm    = pms.find(p=>p.id===b.pmId);
-                const goal  = parseInt(goals[b.brand]||0);
-                const left  = goal>0 ? goal - b.mtdApproved : null;
-                const leftColor = left===null?'':(left<=0?'#3dba7c':left<goal*0.3?'#f0a03a':'#e85c5c');
-                const lmDiff = (b.lastMoSum!=null&&b.mtdSum!=null) ? b.mtdSum - b.lastMoSum : null;
-                const lmColor= lmDiff===null?'#3d3b5c':lmDiff>0?'#3dba7c':lmDiff<0?'#e85c5c':'#52507a';
+                const sc      = STATUS_CONFIG[b.status];
+                const pm      = pms.find(p=>p.id===b.pmId);
+                const goal    = parseInt(goals[b.brand]||0);
+                const left    = goal>0 ? goal - b.mtdApproved : null;
+                const leftColor = left===null?'':(left<=0?'#10B981':left<goal*0.3?'#F59E0B':'#EF4444');
+                const lmDiff  = (b.lastMoSum!=null&&b.mtdSum!=null) ? b.mtdSum - b.lastMoSum : null;
+                const lc      = brandLifecycle[b.brand] || 'active';
+                const lcCfg   = LC[lc];
+                const isPinned = prioritySet.has(b.brand);
+                const lmColor= lmDiff===null?'#475569':lmDiff>0?'#10B981':lmDiff<0?'#EF4444':'#64748B';
                 return (
-                  <tr key={b.brand} className="hover-row" style={{ borderBottom:'1px solid #f2f0fb' }}>
-                    <td style={{ padding:'10px 8px 10px 14px', color:'#2a2a45', fontSize:'12px', width:'32px' }}>{idx+1}</td>
-                    <td style={{ padding:'10px 14px', color:'#e8e6f4', fontWeight:600, whiteSpace:'nowrap' }}>{b.brand}</td>
+                  <tr key={b.brand} className="hover-row" style={{ borderBottom:'1px solid rgba(148,163,184,0.06)', opacity: lc==='churned'?0.45:1 }}>
+                    <td style={{ padding:'8px 4px 8px 10px', width:'28px', textAlign:'center' }}>
+                      <button onClick={()=>togglePriority(b.brand)} title={isPinned?'Remove from Priority':'Add to Priority (max 20)'}
+                        style={{ background:'none', border:'none', cursor:'pointer', fontSize:'14px', lineHeight:1, padding:'2px', color: isPinned?'#F59E0B':'#334155', transition:'all 0.15s' }}>
+                        {isPinned ? '⭐' : '☆'}
+                      </button>
+                    </td>
+                    <td style={{ padding:'10px 10px 10px 4px', whiteSpace:'nowrap' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                        <button onClick={()=>{ const order=['active','paused','churned']; const i=order.indexOf(lc); setLifecycle(b.brand, order[(i+1)%3]); }}
+                          title={`Lifecycle: ${lcCfg.label} — click to change`}
+                          style={{ background:'none', border:'none', cursor:'pointer', fontSize:'11px', color:lcCfg.color, padding:'1px 3px', borderRadius:'3px', background:lcCfg.bg, fontWeight:700, flexShrink:0 }}>
+                          {lcCfg.dot}
+                        </button>
+                        <span style={{ color:'#F1F5F9', fontWeight:600 }}>{b.brand}</span>
+                      </div>
+                    </td>
                     <td style={{ padding:'10px 14px' }}>
                       {pm ? (
                         <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
                           <div style={{ width:'20px', height:'20px', borderRadius:'5px', background:`${pm.color}22`, border:`1px solid ${pm.color}55`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:700, color:pm.color }}>{initials(pm.name)}</div>
-                          <span style={{ color:'#52507a', fontSize:'12px' }}>{pm.name}</span>
+                          <span style={{ color:'#64748B', fontSize:'12px' }}>{pm.name}</span>
                         </div>
-                      ) : <span style={{ color:'#2a2a45', fontSize:'12px' }}>—</span>}
+                      ) : <span style={{ color:'#334155', fontSize:'12px' }}>—</span>}
                     </td>
-                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.today>0?'#e8e6f4':'#3d3b5c', fontWeight:b.today>0?700:400 }}>{b.today||'—'}</td>
-                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#9896b8' }}>{b.avg7d.toFixed(1)}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.today>0?'#F1F5F9':'#475569', fontWeight:b.today>0?700:400 }}>{b.today||'—'}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:'#94A3B8' }}>{b.avg7d.toFixed(1)}</td>
                     <td style={{ padding:'10px 14px', textAlign:'right' }}>
-                      <span style={{ color:'#8b6ee8', fontWeight:600 }}>{b.mtdAvg.toFixed(1)}</span>
-                      <span style={{ color:'#3d3b5c', fontSize:'10px', marginLeft:'3px' }}>/d</span>
+                      <span style={{ color:'#7B5FFF', fontWeight:600 }}>{b.mtdAvg.toFixed(1)}</span>
+                      <span style={{ color:'#475569', fontSize:'10px', marginLeft:'3px' }}>/d</span>
                     </td>
                     <td style={{ padding:'10px 14px', textAlign:'right' }}>
                       {b.lastMoSum!=null ? (
@@ -789,7 +886,7 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
                           {b.lastMoSum}
                           {lmDiff!==null&&lmDiff!==0 && <span style={{ fontSize:'10px', marginLeft:'4px', fontWeight:700 }}>{lmDiff>0?'▲':'▼'}{Math.abs(lmDiff)}</span>}
                         </span>
-                      ) : <span style={{ color:'rgba(255,255,255,0.07)' }}>—</span>}
+                      ) : <span style={{ color:'#334155' }}>—</span>}
                     </td>
                     <td style={{ padding:'10px 14px' }}><Sparkline data={b.last7} /></td>
                     <td style={{ padding:'10px 14px' }}>
@@ -797,24 +894,24 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
                     </td>
                     <td style={{ padding:'10px 14px', minWidth:'95px' }}>
                       <input type="number" min="0" value={goals[b.brand]||''} onChange={e=>updateGoal(b.brand,e.target.value)} placeholder="Set goal"
-                        style={{ width:'80px', background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'3px 7px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }} />
+                        style={{ width:'80px', background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'3px 7px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }} />
                     </td>
-                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.mtdApproved>0?'#f0a03a':'#3d3b5c', fontWeight:b.mtdApproved>0?700:400 }}>{b.mtdApproved||'—'}</td>
+                    <td style={{ padding:'10px 14px', textAlign:'right', color:b.mtdApproved>0?'#F59E0B':'#475569', fontWeight:b.mtdApproved>0?700:400 }}>{b.mtdApproved||'—'}</td>
                     <td style={{ padding:'10px 14px', textAlign:'right' }}>
-                      {left!==null ? <span style={{ color:leftColor, fontWeight:700 }}>{left<=0?'✓ Done':left}</span> : <span style={{ color:'#2a2a45' }}>—</span>}
+                      {left!==null ? <span style={{ color:leftColor, fontWeight:700 }}>{left<=0?'✓ Done':left}</span> : <span style={{ color:'#334155' }}>—</span>}
                     </td>
                   </tr>
                 );
               })}
-              {filtered.length===0 && <tr><td colSpan={12} style={{ padding:'40px', textAlign:'center', color:'#3d3b5c' }}>No brands match the current filter.</td></tr>}
+              {filtered.length===0 && <tr><td colSpan={12} style={{ padding:'40px', textAlign:'center', color:'#475569' }}>No brands match the current filter.</td></tr>}
             </tbody>
           </table>
         </div>
-        <div style={{ padding:'10px 16px', borderTop:'1px solid #f2f0fb', fontSize:'11px', color:'#3d3b5c', display:'flex', gap:'16px', flexWrap:'wrap', background:'#0e0e1a' }}>
+        <div style={{ padding:'10px 16px', borderTop:'1px solid rgba(148,163,184,0.06)', fontSize:'11px', color:'#475569', display:'flex', gap:'16px', flexWrap:'wrap', background:'#030b18' }}>
           {Object.entries(STATUS_CONFIG).map(([k,v])=>(
             <span key={k}><span style={{color:v.color}}>{v.icon} {v.label}</span>: {k==='active'?'posting recently':k==='dipped'?'dropped >50% vs prior week':k==='pipeline'?'samples approved, no videos yet':'no activity in 14 days'}</span>
           ))}
-          <span style={{ marginLeft:'auto', color:'#2a2a45' }}>Last Mo. = {lastMoLabel} · MTD Avg = daily rate this month · Left = Goal − Approved MTD</span>
+          <span style={{ marginLeft:'auto', color:'#334155' }}>Last Mo. = {lastMoLabel} · MTD Avg = daily rate this month · Left = Goal − Approved MTD</span>
         </div>
       </div>
     </div>
@@ -824,64 +921,281 @@ function VideoTracker({ dates, videoData, videoLoading, pms, brandMap, goals, up
 // ════════════════════════════════════════════════════════════════════════════
 // SETTINGS MODAL
 // ════════════════════════════════════════════════════════════════════════════
-function SettingsModal({ pms, setPms, brandList, brandMap, assignBrand, onClose }) {
-  const [tab, setTab]     = useState('brands');
+function SettingsModal({ pms, setPms, brandList, brandMap, assignBrand, brandLifecycle, setLifecycle, customBrands, addCustomBrand, removeCustomBrand, prioritySet, onClearCache, onClose }) {
+  const [tab, setTab]         = useState('brands');
   const [newName, setNewName] = useState('');
   const [search, setSearch]   = useState('');
+  const [newBrand, setNewBrand] = useState({ name:'', pmId:'', goal:'', onboarded: new Date().toISOString().slice(0,10) });
+
   const addPm = () => { if (!newName.trim()) return; setPms(prev=>[...prev,{id:'pm_'+Date.now(),name:newName.trim(),color:PM_COLORS[prev.length%PM_COLORS.length]}]); setNewName(''); };
-  const filtered = brandList.filter(b=>b.toLowerCase().includes(search.toLowerCase()));
+  const allBrands = [...new Set([...brandList, ...customBrands.map(b=>b.name)])];
+  const filtered  = allBrands.filter(b=>b.toLowerCase().includes(search.toLowerCase()));
+
+  const TABS = [['brands','Assign PMs'],['lifecycle','Brand Status'],['add','Add Brand'],['pms','Manage PMs']];
+
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(26,24,53,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100 }}
+    <div style={{ position:'fixed', inset:0, background:'rgba(3,11,24,0.75)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100 }}
       onClick={e=>{ if(e.target===e.currentTarget) onClose(); }}>
-      <div style={{ background:'#111120', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'14px', width:'600px', maxHeight:'84vh', display:'flex', flexDirection:'column', boxShadow:'0 24px 64px rgba(91,78,200,0.18)' }}>
-        <div style={{ padding:'18px 22px', borderBottom:'1px solid rgba(255,255,255,0.07)', display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0 }}>
-          <span style={{ fontWeight:800, fontSize:'15px', color:'#e8e6f4' }}>⚙ Settings</span>
-          <button onClick={onClose} style={{ background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#52507a', cursor:'pointer', fontSize:'14px', width:'28px', height:'28px', borderRadius:'7px', lineHeight:1, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+      <div style={{ background:'#071120', border:'1px solid rgba(123,95,255,0.2)', borderRadius:'14px', width:'640px', maxHeight:'86vh', display:'flex', flexDirection:'column', boxShadow:'0 24px 64px rgba(0,0,0,0.6)' }}>
+        <div style={{ padding:'16px 22px', borderBottom:'1px solid rgba(148,163,184,0.08)', display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0 }}>
+          <span style={{ fontWeight:800, fontSize:'15px', color:'#F1F5F9' }}>⚙ Settings</span>
+          <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
+            <button onClick={onClearCache} title="Clear cached API data to force a refresh" style={{ background:'transparent', border:'1px solid rgba(148,163,184,0.1)', color:'#475569', padding:'4px 10px', borderRadius:'6px', cursor:'pointer', fontSize:'11px' }}>Clear Cache</button>
+            <button onClick={onClose} style={{ background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#64748B', cursor:'pointer', fontSize:'14px', width:'28px', height:'28px', borderRadius:'7px', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+          </div>
         </div>
-        <div style={{ display:'flex', borderBottom:'1px solid rgba(255,255,255,0.07)', flexShrink:0 }}>
-          {[['brands','Assign Brands'],['pms','Manage PMs']].map(([t,l])=>(
-            <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'11px', background:tab===t?'#13131f':'transparent', border:'none', borderBottom:tab===t?'2px solid #5b8dee':'2px solid transparent', color:tab===t?'#e8e6f4':'#52507a', cursor:'pointer', fontSize:'13px', fontWeight:tab===t?700:400 }}>{l}</button>
+        <div style={{ display:'flex', borderBottom:'1px solid rgba(148,163,184,0.08)', flexShrink:0 }}>
+          {TABS.map(([t,l])=>(
+            <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'10px 6px', background:tab===t?'#050c17':'transparent', border:'none', borderBottom:tab===t?'2px solid #7B5FFF':'2px solid transparent', color:tab===t?'#F1F5F9':'#64748B', cursor:'pointer', fontSize:'12px', fontWeight:tab===t?700:400 }}>{l}</button>
           ))}
         </div>
         <div style={{ flex:1, overflowY:'auto', padding:'18px' }}>
+
+          {/* ── Assign PMs ── */}
           {tab==='brands' && (
             <div>
-              <div style={{ fontSize:'12px', color:'#52507a', marginBottom:'12px' }}>Assign each brand to a PM. Changes save automatically.</div>
+              <div style={{ fontSize:'12px', color:'#64748B', marginBottom:'12px' }}>Assign each brand to a PM. Changes save automatically.</div>
               <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍  Search brands…"
-                style={{ width:'100%', background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px', marginBottom:'12px' }} />
+                style={{ width:'100%', background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px', marginBottom:'12px' }} />
               {filtered.map(brand=>(
-                <div key={brand} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'7px 0', borderBottom:'1px solid #f4f2ff' }}>
-                  <span style={{ flex:1, color:'#e8e6f4', fontSize:'13px' }}>{brand}</span>
+                <div key={brand} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'7px 0', borderBottom:'1px solid rgba(148,163,184,0.06)' }}>
+                  <span style={{ flex:1, color:'#F1F5F9', fontSize:'13px', display:'flex', alignItems:'center', gap:'6px' }}>
+                    {customBrands.find(b=>b.name===brand) && <span style={{ fontSize:'10px', color:'#7B5FFF', background:'rgba(123,95,255,0.12)', padding:'1px 5px', borderRadius:'3px' }}>NEW</span>}
+                    {brand}
+                  </span>
                   <select value={brandMap[brand]||''} onChange={e=>assignBrand(brand,e.target.value)}
-                    style={{ background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'4px 8px', borderRadius:'5px', fontSize:'12px', cursor:'pointer' }}>
+                    style={{ background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'4px 8px', borderRadius:'5px', fontSize:'12px', cursor:'pointer' }}>
                     <option value="">— Unassigned —</option>
                     {pms.map(pm=><option key={pm.id} value={pm.id}>{pm.name}</option>)}
                   </select>
                 </div>
               ))}
-              {filtered.length===0 && <div style={{ color:'#3d3b5c', textAlign:'center', padding:'20px' }}>No brands match.</div>}
+              {filtered.length===0 && <div style={{ color:'#475569', textAlign:'center', padding:'20px' }}>No brands match.</div>}
             </div>
           )}
+
+       
+              <div style={{ fontSize:'12px', color:'#64748B', marginBottom:'4px' }}>Set lifecycle status per brand. <strong style={{ color:'#EF4444' }}>Churned</strong> brands are dimmed in the tracker.</div>
+              <div style={{ display:'flex', gap:'8px', marginBottom:'14px', flexWrap:'wrap' }}>
+                {Object.entries(LC).map(([k,v])=>(<span key={k} style={{ fontSize:'11px', background:v.bg, color:v.color, padding:'3px 9px', borderRadius:'12px', fontWeight:700 }}>{v.dot} {v.label}</span>))}
+              </div>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍  Search brands…"
+                style={{ width:'100%', background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px', marginBottom:'12px' }} />
+              {filtered.map(brand=>{ const lc = brandLifecycle[brand]||'active'; return (
+                <div key={brand} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'7px 0', borderBottom:'1px solid rgba(148,163,184,0.06)' }}>
+                  <span style={{ flex:1, color: lc==='churned'?'#475569':'#F1F5F9', fontSize:'13px', textDecoration: lc==='churned'?'line-through':'' }}>{brand}</span>
+                  <span style={{ fontSize:'10px', color:'#475569' }}>{prioritySet.has(brand)?'⭐':''}</span>
+                  <div style={{ display:'flex', gap:'4px' }}>
+                    {Object.entries(LC).map(([k,v])=>(<button key={k} onClick={()=>setLifecycle(brand,k)} style={{ padding:'3px 9px', borderRadius:'5px', fontSize:'11px', fontWeight:lc===k?700:400, cursor:'pointer', border:'none', background:lc===k?v.bg:'transparent', color:lc===k?v.color:'#475569', outline:lc===k?`1px solid ${v.color}55`:'1px solid rgba(148,163,184,0.08)' }}>{v.dot} {v.label}</button>))}
+                  </div>
+                </div>
+              );})}
+            </div>
+          )}
+
+          {tab==='add' && (
+            <div>
+              <div style={{ fontSize:'12px', color:'#64748B', marginBottom:'16px' }}>Add a new brand before it appears in the API. It'll show 0 video/GMV until data flows through.</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'12px' }}>
+                <div><label style={{ fontSize:'11px', color:'#475569', display:'block', marginBottom:'5px', fontWeight:700 }}>Brand Name *</label>
+                  <input value={newBrand.name} onChange={e=>setNewBrand(p=>({...p,name:e.target.value}))} placeholder="e.g. Ritual Vitamins" style={{ width:'100%', background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px' }} /></div>
+                <div><label style={{ fontSize:'11px', color:'#475569', display:'block', marginBottom:'5px', fontWeight:700 }}>PM</label>
+                  <select value={newBrand.pmId} onChange={e=>setNewBrand(p=>({...p,pmId:e.target.value}))} style={{ width:'100%', background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px', cursor:'pointer' }}>
+                    <option value="">— Unassigned —</option>
+                    {pms.map(pm=><option key={pm.id} value={pm.id}>{pm.name}</option>)}
+                  </select></div>
+                <div><label style={{ fontSize:'11px', color:'#475569', display:'block', marginBottom:'5px', fontWeight:700 }}>Sample Goal</label>
+                  <input type="number" value={newBrand.goal} onChange={e=>setNewBrand(p=>({...p,goal:e.target.value}))} placeholder="e.g. 500" style={{ width:'100%', background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px' }} /></div>
+                <div><label style={{ fontSize:'11px', color:'#475569', display:'block', marginBottom:'5px', fontWeight:700 }}>Onboarding Date</label>
+                  <input type="date" value={newBrand.onboarded} onChange={e=>setNewBrand(p=>({...p,onboarded:e.target.value}))} style={{ width:'100%', background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px' }} /></div>
+              </div>
+              <button onClick={()=>{ if(!newBrand.name.trim()) return; addCustomBrand({name:newBrand.name.trim(),pmId:newBrand.pmId,goal:newBrand.goal,onboarded:newBrand.onboarded}); if(newBrand.pmId) assignBrand(newBrand.name.trim(),newBrand.pmId); setNewBrand({name:'',pmId:'',goal:'',onboarded:new Date().toISOString().slice(0,10)}); }}
+                style={{ background:'#7B5FFF', border:'none', color:'#fff', padding:'10px 20px', borderRadius:'8px', cursor:'pointer', fontSize:'13px', fontWeight:700, boxShadow:'0 0 16px rgba(123,95,255,0.35)', marginBottom:'24px' }}>+ Add Brand</button>
+              <div style={{ fontSize:'11px', color:'#475569', textTransform:'uppercase', letterSpacing:'0.7px', fontWeight:700, marginBottom:'10px' }}>Custom Brands ({customBrands.length})</div>
+              {customBrands.length===0 && <div style={{ color:'#334155', fontSize:'13px' }}>No custom brands yet.</div>}
+              {customBrands.map(b=>(<div key={b.name} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'8px 0', borderBottom:'1px solid rgba(148,163,184,0.06)' }}>
+                <div style={{ flex:1 }}><div style={{ color:'#F1F5F9', fontSize:'13px', fontWeight:600 }}>{b.name}</div><div style={{ fontSize:'11px', color:'#475569' }}>Onboarded {b.onboarded} · Goal: {b.goal||'—'} · {pms.find(p=>p.id===b.pmId)?.name||'Unassigned'}</div></div>
+                <button onClick={()=>removeCustomBrand(b.name)} style={{ background:'transparent', border:'1px solid #EF4444', color:'#EF4444', padding:'4px 10px', borderRadius:'5px', cursor:'pointer', fontSize:'12px' }}>Remove</button>
+              </div>))}
+            </div>
+          )}
+
           {tab==='pms' && (
             <div>
+              <div style={{ fontSize:'12px', color:'#64748B', marginBottom:'8px' }}>Share PM view: <code style={{ background:'rgba(123,95,255,0.12)', color:'#a58bff', padding:'1px 6px', borderRadius:'3px', fontSize:'11px' }}>{window.location.origin+window.location.pathname}?pm=<em>id</em></code></div>
               <div style={{ display:'flex', gap:'8px', marginBottom:'18px' }}>
-                <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addPm()} placeholder="New PM name…"
-                  style={{ flex:1, background:'#1a1a2e', border:'1px solid rgba(255,255,255,0.07)', color:'#9896b8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px' }} />
-                <button onClick={addPm} style={{ background:'#7c6af5', border:'none', color:'#fff', padding:'8px 16px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', fontWeight:700 }}>+ Add PM</button>
+                <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addPm()} placeholder="New PM name…" style={{ flex:1, background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'8px 12px', borderRadius:'7px', fontSize:'13px' }} />
+                <button onClick={addPm} style={{ background:'#7B5FFF', border:'none', color:'#fff', padding:'8px 16px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', fontWeight:700, boxShadow:'0 0 16px rgba(123,95,255,0.35)' }}>+ Add PM</button>
               </div>
-              {pms.map(pm=>(
-                <div key={pm.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'8px 0', borderBottom:'1px solid #f4f2ff' }}>
-                  <div style={{ width:'28px', height:'28px', borderRadius:'7px', background:`${pm.color}22`, border:`1px solid ${pm.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:800, color:pm.color, flexShrink:0 }}>{initials(pm.name)}</div>
-                  <input value={pm.name} onChange={e=>setPms(prev=>prev.map(p=>p.id===pm.id?{...p,name:e.target.value}:p))}
-                    style={{ flex:1, background:'transparent', border:'1px solid transparent', color:'#e8e6f4', padding:'5px 8px', borderRadius:'5px', fontSize:'13px' }}
-                    onFocus={e=>e.target.style.borderColor='rgba(255,255,255,0.07)'} onBlur={e=>e.target.style.borderColor='transparent'} />
-                  <button onClick={()=>setPms(prev=>prev.filter(p=>p.id!==pm.id))}
-                    style={{ background:'transparent', border:'1px solid #e85c5c', color:'#e85c5c', padding:'4px 10px', borderRadius:'5px', cursor:'pointer', fontSize:'12px' }}>Remove</button>
-                </div>
-              ))}
+              {pms.map(pm=>(<div key={pm.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'8px 0', borderBottom:'1px solid rgba(148,163,184,0.06)' }}>
+                <div style={{ width:'28px', height:'28px', borderRadius:'7px', background:`${pm.color}22`, border:`1px solid ${pm.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:800, color:pm.color, flexShrink:0 }}>{initials(pm.name)}</div>
+                <input value={pm.name} onChange={e=>setPms(prev=>prev.map(p=>p.id===pm.id?{...p,name:e.target.value}:p))} style={{ flex:1, background:'transparent', border:'1px solid transparent', color:'#F1F5F9', padding:'5px 8px', borderRadius:'5px', fontSize:'13px' }} onFocus={e=>e.target.style.borderColor='rgba(123,95,255,0.3)'} onBlur={e=>e.target.style.borderColor='transparent'} />
+                <span style={{ fontSize:'11px', color:'#475569', cursor:'pointer', padding:'2px 6px', background:'rgba(123,95,255,0.08)', borderRadius:'4px' }} onClick={()=>navigator.clipboard?.writeText(window.location.origin+window.location.pathname+'?pm='+pm.id)} title="Copy shareable link">🔗 {pm.id}</span>
+                <button onClick={()=>setPms(prev=>prev.filter(p=>p.id!==pm.id))} style={{ background:'transparent', border:'1px solid #EF4444', color:'#EF4444', padding:'4px 10px', borderRadius:'5px', cursor:'pointer', fontSize:'12px' }}>Remove</button>
+              </div>))}
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PRIORITY VIEW
+// ════════════════════════════════════════════════════════════════════════════
+function PriorityView({ dates, videoData, videoLoading, pms, brandMap, goals, brandLifecycle, prioritySet, togglePriority, setView }) {
+  const today        = dates[0] || '';
+  const currentMonth = today.slice(0,7);
+  const mtdDates     = useMemo(() => dates.filter(d=>d.startsWith(currentMonth)), [dates,currentMonth]);
+
+  const pinnedData = useMemo(() => {
+    return [...prioritySet].map(brand => {
+      const getVids = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.new_videos||0;
+      const getSamp = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.sample_approved||0;
+      const getGmv  = d => (videoData[d]||[]).find(r=>r.brand_name===brand)?.gmv||0;
+      const todayVids   = getVids(today);
+      const avg7d       = dates.slice(0,7).reduce((s,d)=>s+getVids(d),0)/7;
+      const mtdSum      = mtdDates.reduce((s,d)=>s+getVids(d),0);
+      const mtdAvg      = mtdDates.length ? mtdSum/mtdDates.length : 0;
+      const mtdApproved = mtdDates.reduce((s,d)=>s+getSamp(d),0);
+      const todayGmv    = getGmv(today);
+      const last7vids   = dates.slice(0,7).map(getVids);
+      const lc          = brandLifecycle[brand] || 'active';
+      const pm          = pms.find(p=>p.id===brandMap[brand]);
+      const goal        = parseInt(goals[brand]||0);
+      const goalPct     = goal>0 ? Math.min(100,(mtdApproved/goal)*100) : null;
+      const status      = computeBrandVideoStatus(brand, dates, videoData);
+      return { brand, todayVids, avg7d, mtdSum, mtdAvg, mtdApproved, todayGmv, last7vids, lc, pm, goal, goalPct, status, atGoal: todayVids>=VIDEO_GOAL };
+    }).sort((a,b)=>b.avg7d-a.avg7d);
+  }, [prioritySet, videoData, dates, mtdDates, brandLifecycle, brandMap, pms, goals, today]);
+
+  const atGoalCount  = pinnedData.filter(b=>b.atGoal).length;
+  const totalGoalPct = pinnedData.length ? Math.round((atGoalCount/pinnedData.length)*100) : 0;
+
+  return (
+    <div className="fade-in">
+      <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'24px', flexWrap:'wrap' }}>
+        <div>
+          <h2 style={{ fontSize:'20px', fontWeight:800, color:'#F1F5F9', letterSpacing:'-0.4px' }}>⭐ Priority Brands</h2>
+          <div style={{ fontSize:'12px', color:'#475569', marginTop:'2px' }}>{prioritySet.size}/20 pinned · {atGoalCount} at 100/day goal</div>
+        </div>
+        <div style={{ marginLeft:'auto', display:'flex', gap:'10px', alignItems:'center' }}>
+          {videoLoading && <span style={{ fontSize:'12px', color:'#475569', display:'flex', gap:'5px', alignItems:'center' }}><Spinner />Loading…</span>}
+          <button onClick={()=>setView('video')} style={{ background:'rgba(123,95,255,0.12)', border:'1px solid rgba(123,95,255,0.25)', color:'#a58bff', padding:'7px 14px', borderRadius:'8px', cursor:'pointer', fontSize:'12px', fontWeight:700 }}>Pin brands in Video Tracker →</button>
+        </div>
+      </div>
+
+      {prioritySet.size === 0 ? (
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'40vh', gap:'12px', color:'#475569' }}>
+          <div style={{ fontSize:'40px' }}>☆</div>
+          <div style={{ fontSize:'16px', fontWeight:700, color:'#94A3B8' }}>No priority brands pinned yet</div>
+          <div style={{ fontSize:'13px' }}>Go to <strong style={{ color:'#7B5FFF' }}>Video Tracker</strong> and click ☆ on any brand (max 20).</div>
+          <button onClick={()=>setView('video')} style={{ marginTop:'8px', background:'#7B5FFF', border:'none', color:'#fff', padding:'9px 20px', borderRadius:'8px', cursor:'pointer', fontSize:'13px', fontWeight:700, boxShadow:'0 0 20px rgba(123,95,255,0.35)' }}>Open Video Tracker</button>
+        </div>
+      ) : (
+        <>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))', gap:'12px', marginBottom:'24px' }}>
+            <StatCard label="Pinned"      value={`${prioritySet.size}/20`} color="#7B5FFF" icon="⭐" />
+            <StatCard label="At Goal"     value={`${atGoalCount}/${pinnedData.length}`} color={totalGoalPct>=80?'#10B981':totalGoalPct>=50?'#38BDF8':'#EF4444'} icon="🎯" bar={totalGoalPct} />
+            <StatCard label="Videos Today" value={pinnedData.reduce((s,b)=>s+b.todayVids,0).toString()} color="#38BDF8" icon="🎬" />
+            <StatCard label="GMV Today"   value={fmt$(pinnedData.reduce((s,b)=>s+b.todayGmv,0))} color="#10B981" icon="💰" />
+          </div>
+          <div className="card" style={{ overflow:'hidden' }}>
+            <div style={{ overflowX:'auto' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
+                <thead>
+                  <tr style={{ background:'#050c17', borderBottom:'1px solid rgba(148,163,184,0.06)' }}>
+                    {['Brand','PM','Today','Last 7','7D Avg','MTD Avg','GMV Today','Goal %','Status','Unpin'].map(h=>(
+                      <th key={h} style={{ padding:'10px 14px', textAlign: ['Today','7D Avg','MTD Avg','GMV Today'].includes(h)?'right':'left', color:'#475569', fontSize:'11px', fontWeight:700, textTransform:'uppercase', whiteSpace:'nowrap' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {pinnedData.map(b => {
+                    const lcc   = LC[b.lc];
+                    const sc    = STATUS_CONFIG[b.status];
+                    const heatBg = b.todayVids>=VIDEO_GOAL?'rgba(16,185,129,0.05)':b.todayVids>=VIDEO_GOAL*0.5?'rgba(245,158,11,0.04)':b.todayVids>0?'rgba(239,68,68,0.04)':'transparent';
+                    const vc    = b.todayVids>=VIDEO_GOAL?'#10B981':b.todayVids>=VIDEO_GOAL*0.7?'#38BDF8':b.todayVids>0?'#F59E0B':'#334155';
+                    return (
+                      <tr key={b.brand} className="hover-row" style={{ borderBottom:'1px solid rgba(148,163,184,0.06)', background:heatBg }}>
+                        <td style={{ padding:'11px 14px' }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                            <span style={{ fontSize:'10px', color:lcc.color, background:lcc.bg, padding:'1px 4px', borderRadius:'3px', fontWeight:700 }}>{lcc.dot}</span>
+                            <span style={{ color:'#F1F5F9', fontWeight:600, whiteSpace:'nowrap' }}>{b.brand}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding:'11px 14px' }}>{b.pm?<span style={{ fontSize:'12px', color:b.pm.color, background:`${b.pm.color}22`, padding:'2px 7px', borderRadius:'4px', fontWeight:700 }}>{b.pm.name}</span>:<span style={{ color:'#334155' }}>—</span>}</td>
+                        <td style={{ padding:'11px 14px', textAlign:'right' }}><span style={{ color:vc, fontWeight:800, fontSize:'15px' }}>{b.todayVids||'—'}</span>{b.atGoal&&<span style={{ marginLeft:'4px', fontSize:'10px', color:'#10B981' }}>✓</span>}</td>
+                        <td style={{ padding:'11px 14px' }}><Sparkline data={b.last7vids} /></td>
+                        <td style={{ padding:'11px 14px', textAlign:'right', color:'#94A3B8' }}>{b.avg7d.toFixed(1)}</td>
+                        <td style={{ padding:'11px 14px', textAlign:'right', color:'#7B5FFF', fontWeight:600 }}>{b.mtdAvg.toFixed(1)}</td>
+                        <td style={{ padding:'11px 14px', textAlign:'right', color:'#10B981', fontWeight:700 }}>{fmt$(b.todayGmv)}</td>
+                        <td style={{ padding:'11px 14px', minWidth:'120px' }}>
+                          {b.goalPct!==null?(<div style={{ display:'flex', alignItems:'center', gap:'6px' }}><div style={{ flex:1, background:'#091626', borderRadius:'3px', height:'4px' }}><div style={{ height:'100%', borderRadius:'3px', width:`${b.goalPct}%`, background:b.goalPct>=100?'#10B981':b.goalPct>=60?'#F59E0B':'#EF4444' }}/></div><span style={{ fontSize:'11px', color:b.goalPct>=100?'#10B981':b.goalPct>=60?'#F59E0B':'#EF4444', fontWeight:700 }}>{b.goalPct.toFixed(0)}%</span></div>):<span style={{ color:'#334155', fontSize:'12px' }}>—</span>}
+                        </td>
+                        <td style={{ padding:'11px 14px' }}><span className="status-badge" style={{ background:sc.bg, color:sc.color }}>{sc.label}</span></td>
+                        <td style={{ padding:'11px 14px', textAlign:'center' }}><button onClick={()=>togglePriority(b.brand)} style={{ background:'none', border:'none', cursor:'pointer', color:'#F59E0B', fontSize:'16px' }} title="Unpin">⭐</button></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PM SHARE VIEW  (?pm=id URL)
+// ════════════════════════════════════════════════════════════════════════════
+function PMShareView({ pm, brands, byBrand, goals, updateGoal, brandLifecycle }) {
+  const weekKey = useMemo(() => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-w${Math.ceil(d.getDate()/7)}`; }, []);
+  const [weekTargets, setWeekTargets] = useState(() => lsGet(`tts_wt_${pm.id}`, {}));
+  const setTarget = (brand, val) => { const n={...weekTargets,[brand]:val}; setWeekTargets(n); lsSet(`tts_wt_${pm.id}`,n); };
+  const activeBrands = brands.filter(b=>(brandLifecycle[b]||'active')!=='churned');
+  const totalGmv  = activeBrands.reduce((s,b)=>s+(byBrand[b]?.gmv||0),0);
+  const totalVids = activeBrands.reduce((s,b)=>s+(byBrand[b]?.new_videos||0),0);
+  return (
+    <div style={{ maxWidth:'900px', margin:'0 auto', padding:'32px 24px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'32px' }}>
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2L20 11L11 20L2 11L11 2Z" fill="url(#pg-sh)"/><defs><linearGradient id="pg-sh" x1="2" y1="2" x2="20" y2="20" gradientUnits="userSpaceOnUse"><stop stopColor="#38BDF8"/><stop offset="1" stopColor="#7B5FFF"/></linearGradient></defs></svg>
+        <span style={{ fontWeight:800, fontSize:'15px', color:'#F1F5F9' }}>TTS Ops</span>
+        <div style={{ marginLeft:'16px', width:'1px', height:'20px', background:'rgba(148,163,184,0.1)' }}/>
+        <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:`${pm.color}22`, border:`1px solid ${pm.color}55`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', fontWeight:800, color:pm.color }}>{initials(pm.name)}</div>
+        <div><div style={{ fontWeight:700, fontSize:'18px', color:'#F1F5F9' }}>{pm.name}'s Brands</div><div style={{ fontSize:'12px', color:'#475569' }}>{activeBrands.length} active brands · week {weekKey}</div></div>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'12px', marginBottom:'28px' }}>
+        <StatCard label="Total GMV"    value={fmt$(totalGmv)}  color="#10B981" icon="💰" />
+        <StatCard label="Total Videos" value={fmtN(totalVids)} color="#38BDF8" icon="🎬" />
+        <StatCard label="Active Brands" value={activeBrands.length.toString()} color="#7B5FFF" icon="📦" />
+      </div>
+      <div className="card" style={{ overflow:'hidden' }}>
+        <div style={{ overflowX:'auto' }}>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
+            <thead>
+              <tr style={{ background:'#050c17', borderBottom:'1px solid rgba(148,163,184,0.06)' }}>
+                {['Brand','Videos','GMV','Req','Approved','Weekly Target'].map(h=>(<th key={h} style={{ padding:'10px 14px', textAlign:'left', color:'#475569', fontSize:'11px', fontWeight:700, textTransform:'uppercase' }}>{h}</th>))}
+              </tr>
+            </thead>
+            <tbody>
+              {activeBrands.map(brand => { const d=byBrand[brand]; const lc=brandLifecycle[brand]||'active'; return (
+                <tr key={brand} className="hover-row" style={{ borderBottom:'1px solid rgba(148,163,184,0.06)' }}>
+                  <td style={{ padding:'10px 14px', color:'#F1F5F9', fontWeight:600 }}><span style={{ fontSize:'10px', color:LC[lc].color, marginRight:'6px' }}>{LC[lc].dot}</span>{brand}</td>
+                  <td style={{ padding:'10px 14px', color:'#94A3B8' }}>{fmtN(d?.new_videos)}</td>
+                  <td style={{ padding:'10px 14px', color:'#10B981', fontWeight:700 }}>{fmt$(d?.gmv)}</td>
+                  <td style={{ padding:'10px 14px' }}>{fmtN(d?.sample_request)}</td>
+                  <td style={{ padding:'10px 14px', color:'#F59E0B', fontWeight:700 }}>{fmtN(d?.sample_approved)}</td>
+                  <td style={{ padding:'10px 14px' }}><input type="number" min="0" placeholder="Set target" value={weekTargets[brand]||''} onChange={e=>setTarget(brand,e.target.value)} style={{ width:'100px', background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#94A3B8', padding:'4px 8px', borderRadius:'5px', fontSize:'12px', textAlign:'center' }}/></td>
+                </tr>
+              );})}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ padding:'10px 16px', borderTop:'1px solid rgba(148,163,184,0.06)', fontSize:'11px', color:'#475569', background:'#030b18' }}>Weekly targets saved locally on this device · Churned brands hidden</div>
       </div>
     </div>
   );
@@ -892,13 +1206,13 @@ function SettingsModal({ pms, setPms, brandList, brandMap, assignBrand, onClose 
 // ════════════════════════════════════════════════════════════════════════════
 function StatCard({ label, value, sub, color, icon, bar }) {
   return (
-    <div style={{ background:'#111120', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'11px', padding:'16px', position:'relative', overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.3)' }}>
-      <div style={{ position:'absolute', top:0, left:0, width:'3px', height:'100%', background:color||'#5b8dee', borderRadius:'11px 0 0 11px' }} />
+    <div style={{ background:'#071120', border:'1px solid rgba(148,163,184,0.08)', borderRadius:'11px', padding:'16px', position:'relative', overflow:'hidden' }}>
+      <div style={{ position:'absolute', top:0, left:0, width:'3px', height:'100%', background:color||'#7B5FFF', borderRadius:'11px 0 0 11px' }} />
       <div style={{ paddingLeft:'4px' }}>
-        <div style={{ fontSize:'10px', color:'#3d3b5c', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'7px', display:'flex', alignItems:'center', gap:'4px' }}>{icon&&<span>{icon}</span>}{label}</div>
-        <div style={{ fontSize:'22px', fontWeight:800, color:color||'#e8e6f4', lineHeight:1, letterSpacing:'-0.5px' }}>{value}</div>
-        {sub && <div style={{ fontSize:'11px', color:'#52507a', marginTop:'4px' }}>{sub}</div>}
-        {bar!=null && <div style={{ marginTop:'10px', background:'#1a1a2e', borderRadius:'4px', height:'4px' }}><div style={{ height:'100%', borderRadius:'4px', width:`${bar}%`, background:color||'#5b8dee', transition:'width 0.3s' }} /></div>}
+        <div style={{ fontSize:'10px', color:'#475569', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:'7px', display:'flex', alignItems:'center', gap:'4px' }}>{icon&&<span>{icon}</span>}{label}</div>
+        <div style={{ fontSize:'22px', fontWeight:800, color:color||'#a58bff', lineHeight:1, letterSpacing:'-0.5px' }}>{value}</div>
+        {sub && <div style={{ fontSize:'11px', color:'#64748B', marginTop:'4px' }}>{sub}</div>}
+        {bar!=null && <div style={{ marginTop:'10px', background:'#091626', borderRadius:'4px', height:'4px' }}><div style={{ height:'100%', borderRadius:'4px', width:`${bar}%`, background:color||'#7B5FFF', transition:'width 0.3s' }} /></div>}
       </div>
     </div>
   );
@@ -906,8 +1220,90 @@ function StatCard({ label, value, sub, color, icon, bar }) {
 
 function MiniStat({ label, value, color }) {
   return (
-    <div style={{ background:'#13131f', borderRadius:'7px', padding:'8px 10px' }}>
-      <div style={{ fontSize:'10px', color:'#3d3b5c', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.5px' }}>{label}</div>
+    <div style={{ background:'#050c17', borderRadius:'7px', padding:'8px 10px' }}>
+      <div style={{ fontSize:'10px', color:'#475569', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.5px' }}>{label}</div>
+      <div style={{ fontSize:'15px', fontWeight:800, color }}>{value}</div>
+    </div>
+  );
+}
+
+function Th({ label, col, sortBy, sortDir, onSort, right }) {
+  const active = col && sortBy===col;
+  return (
+    <th onClick={()=>col&&onSort&&onSort(col)} style={{ padding:'10px 14px', textAlign:right?'right':'left', cursor:col?'pointer':'default', color:active?'#7B5FFF':'#475569', fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.6px', whiteSpace:'nowrap', userSelect:'none' }}>
+      {label}{active?(sortDir==='asc'?' ↑':' ↓'):''}
+    </th>
+  );
+}
+
+function Sparkline({ data, height=28, width=72 }) {
+  if (!data||data.every(v=>v===0)) return <span style={{ color:'#334155', fontSize:'11px' }}>no activity</span>;
+  const max = Math.max(...data, 1);
+  const pts = data.map((v,i)=>`${(i/(data.length-1))*width},${height-(v/max)*(height-2)}`).join(' ');
+  const color = data[0]>data[data.length-1]*0.5?'#10B981':'#EF4444';
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ overflow:'visible' }}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={pts.split(' ')[0].split(',')[0]} cy={pts.split(' ')[0].split(',')[1]} r="2.5" fill={color} />
+    </svg>
+  );
+}
+
+function DonutProgress({ value, max, color }) {
+  const pct=Math.min(value/max,1), r=30, cx=40, cy=40, circ=2*Math.PI*r;
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#0a1628" strokeWidth="8" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="8" strokeDasharray={circ} strokeDashoffset={circ*(1-pct)} strokeLinecap="round" transform="rotate(-90 40 40)" style={{ transition:'stroke-dashoffset 0.5s ease' }} />
+      <text x={cx} y={cy-4} textAnchor="middle" fill={color} fontSize="16" fontWeight="800">{value}</text>
+      <text x={cx} y={cy+10} textAnchor="middle" fill="#475569" fontSize="10">/{max}</text>
+    </svg>
+  );
+}
+
+function Spinner({ size=12 }) {
+  const [r, setR] = useState(0);
+  useEffect(() => { const id=setInterval(()=>setR(v=>(v+30)%360),100); return ()=>clearInterval(id); }, []);
+  return <svg width={size} height={size} viewBox="0 0 12 12" style={{ flexShrink:0 }}><circle cx="6" cy="6" r="4" fill="none" stroke="#7B5FFF" strokeWidth="2" strokeDasharray="12 6" transform={`rotate(${r} 6 6)`} /></svg>;
+}
+
+function EmptyState() {
+  return (
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#475569' }}>
+      <div style={{ fontSize:'48px' }}>👈</div>
+      <div style={{ fontSize:'16px', fontWeight:700, color:'#94A3B8' }}>Select a PM to view their brands</div>
+      <div style={{ fontSize:'13px' }}>Or switch to <strong style={{ color:'#7B5FFF' }}>Manager View</strong> for the full team overview</div>
+    </div>
+  );
+}
+
+function CorsError() {
+  return (
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', maxWidth:'520px', margin:'0 auto', textAlign:'center' }}>
+      <div style={{ fontSize:'44px' }}>🚫</div>
+      <div style={{ fontSize:'16px', fontWeight:800, color:'#EF4444' }}>API Access Blocked</div>
+      <div style={{ fontSize:'13px', color:'#64748B', lineHeight:1.7 }}>The n8n proxy workflows (<code style={{ background:'rgba(123,95,255,0.12)', padding:'1px 6px', borderRadius:'4px', color:'#a58bff' }}>tts-proxy-dates</code> / <code style={{ background:'rgba(123,95,255,0.12)', padding:'1px 6px', borderRadius:'4px', color:'#a58bff' }}>tts-proxy-report</code>) may be inactive. Check that both workflows are Active in n8n.</div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
+isplay:'flex', alignItems:'center', gap:'4px' }}>{icon&&<span>{icon}</span>}{label}</div>
+        <div style={{ fontSize:'22px', fontWeight:800, color:color||'#a58bff', lineHeight:1, letterSpacing:'-0.5px' }}>{value}</div>
+        {sub && <div style={{ fontSize:'11px', color:'#64748B', marginTop:'4px' }}>{sub}</div>}
+        {bar!=null && <div style={{ marginTop:'10px', background:'#091626', borderRadius:'4px', height:'4px' }}><div style={{ height:'100%', borderRadius:'4px', width:`${bar}%`, background:color||'#7B5FFF', transition:'width 0.3s' }} /></div>}
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value, color }) {
+  return (
+    <div style={{ background:'#050c17', borderRadius:'7px', padding:'8px 10px' }}>
+      <div style={{ fontSize:'10px', color:'#475569', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.5px' }}>{label}</div>
       <div style={{ fontSize:'15px', fontWeight:800, color }}>{value}</div>
     </div>
   );
@@ -917,17 +1313,17 @@ function Th({ label, col, sortBy, sortDir, onSort, right }) {
   const active = col && sortBy===col;
   return (
     <th onClick={()=>col&&onSort(col)} style={{ padding:'10px 14px', textAlign:right?'right':'left', cursor:col?'pointer':'default',
-      color:active?'#5b8dee':'#3d3b5c', fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.6px', whiteSpace:'nowrap', userSelect:'none' }}>
+      color:active?'#7B5FFF':'#475569', fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.6px', whiteSpace:'nowrap', userSelect:'none' }}>
       {label}{active?(sortDir==='asc'?' ↑':' ↓'):''}
     </th>
   );
 }
 
 function Sparkline({ data, height=28, width=72 }) {
-  if (!data||data.every(v=>v===0)) return <span style={{ color:'#2a2a45', fontSize:'11px' }}>no activity</span>;
+  if (!data||data.every(v=>v===0)) return <span style={{ color:'#334155', fontSize:'11px' }}>no activity</span>;
   const max = Math.max(...data, 1);
   const pts = data.map((v,i) => `${(i/(data.length-1))*width},${height-(v/max)*(height-2)}`).join(' ');
-  const color = data[0] > data[data.length-1]*0.5 ? '#3dba7c' : '#e85c5c';
+  const color = data[0] > data[data.length-1]*0.5 ? '#10B981' : '#EF4444';
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ overflow:'visible' }}>
       <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
@@ -941,12 +1337,12 @@ function DonutProgress({ value, max, color }) {
   const r=30, cx=40, cy=40, circ=2*Math.PI*r;
   return (
     <svg width="80" height="80" viewBox="0 0 80 80">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#1e1e35" strokeWidth="8" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#0a1628" strokeWidth="8" />
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="8"
         strokeDasharray={circ} strokeDashoffset={circ*(1-pct)}
         strokeLinecap="round" transform="rotate(-90 40 40)" style={{ transition:'stroke-dashoffset 0.5s ease' }} />
       <text x={cx} y={cy-4} textAnchor="middle" fill={color} fontSize="16" fontWeight="800">{value}</text>
-      <text x={cx} y={cy+10} textAnchor="middle" fill="#8e8caa" fontSize="10">/{max}</text>
+      <text x={cx} y={cy+10} textAnchor="middle" fill="#475569" fontSize="10">/{max}</text>
     </svg>
   );
 }
@@ -954,15 +1350,15 @@ function DonutProgress({ value, max, color }) {
 function Spinner({ size=12 }) {
   const [r, setR] = useState(0);
   useEffect(() => { const id = setInterval(()=>setR(v=>(v+30)%360),100); return ()=>clearInterval(id); }, []);
-  return <svg width={size} height={size} viewBox="0 0 12 12" style={{ flexShrink:0 }}><circle cx="6" cy="6" r="4" fill="none" stroke="#ccc9e8" strokeWidth="2" strokeDasharray="12 6" transform={`rotate(${r} 6 6)`} /></svg>;
+  return <svg width={size} height={size} viewBox="0 0 12 12" style={{ flexShrink:0 }}><circle cx="6" cy="6" r="4" fill="none" stroke="#7B5FFF" strokeWidth="2" strokeDasharray="12 6" transform={`rotate(${r} 6 6)`} /></svg>;
 }
 
 function EmptyState() {
   return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#3d3b5c' }}>
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#475569' }}>
       <div style={{ fontSize:'48px' }}>👈</div>
-      <div style={{ fontSize:'16px', fontWeight:700, color:'#52507a' }}>Select a PM to view their brands</div>
-      <div style={{ fontSize:'13px' }}>Or switch to <strong style={{ color:'#52507a' }}>Manager View</strong> for the full team overview</div>
+      <div style={{ fontSize:'16px', fontWeight:700, color:'#94A3B8' }}>Select a PM to view their brands</div>
+      <div style={{ fontSize:'13px' }}>Or switch to <strong style={{ color:'#7B5FFF' }}>Manager View</strong> for the full team overview</div>
     </div>
   );
 }
@@ -971,8 +1367,8 @@ function CorsError() {
   return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', maxWidth:'520px', margin:'0 auto', textAlign:'center' }}>
       <div style={{ fontSize:'44px' }}>🚫</div>
-      <div style={{ fontSize:'16px', fontWeight:800, color:'#e85c5c' }}>API Access Blocked</div>
-      <div style={{ fontSize:'13px', color:'#52507a', lineHeight:1.7 }}>The n8n proxy workflows (<code style={{ background:'#1a1a2e', padding:'1px 5px', borderRadius:'3px', color:'#8b6ee8' }}>tts-proxy-dates</code> / <code style={{ background:'#1a1a2e', padding:'1px 5px', borderRadius:'3px', color:'#8b6ee8' }}>tts-proxy-report</code>) may be inactive. Check that both workflows are Active in n8n.</div>
+      <div style={{ fontSize:'16px', fontWeight:800, color:'#EF4444' }}>API Access Blocked</div>
+      <div style={{ fontSize:'13px', color:'#64748B', lineHeight:1.7 }}>The n8n proxy workflows (<code style={{ background:'rgba(123,95,255,0.12)', padding:'1px 6px', borderRadius:'4px', color:'#a58bff' }}>tts-proxy-dates</code> / <code style={{ background:'rgba(123,95,255,0.12)', padding:'1px 6px', borderRadius:'4px', color:'#a58bff' }}>tts-proxy-report</code>) may be inactive. Check that both workflows are Active in n8n.</div>
     </div>
   );
 }
