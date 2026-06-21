@@ -974,7 +974,9 @@ function SettingsModal({ pms, setPms, brandList, brandMap, assignBrand, brandLif
             </div>
           )}
 
-       
+          {/* ── Brand Status / Lifecycle ── */}
+          {tab==='lifecycle' && (
+            <div>
               <div style={{ fontSize:'12px', color:'#64748B', marginBottom:'4px' }}>Set lifecycle status per brand. <strong style={{ color:'#EF4444' }}>Churned</strong> brands are dimmed in the tracker.</div>
               <div style={{ display:'flex', gap:'8px', marginBottom:'14px', flexWrap:'wrap' }}>
                 {Object.entries(LC).map(([k,v])=>(<span key={k} style={{ fontSize:'11px', background:v.bg, color:v.color, padding:'3px 9px', borderRadius:'12px', fontWeight:700 }}>{v.dot} {v.label}</span>))}
@@ -1264,92 +1266,6 @@ function DonutProgress({ value, max, color }) {
 function Spinner({ size=12 }) {
   const [r, setR] = useState(0);
   useEffect(() => { const id=setInterval(()=>setR(v=>(v+30)%360),100); return ()=>clearInterval(id); }, []);
-  return <svg width={size} height={size} viewBox="0 0 12 12" style={{ flexShrink:0 }}><circle cx="6" cy="6" r="4" fill="none" stroke="#7B5FFF" strokeWidth="2" strokeDasharray="12 6" transform={`rotate(${r} 6 6)`} /></svg>;
-}
-
-function EmptyState() {
-  return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', color:'#475569' }}>
-      <div style={{ fontSize:'48px' }}>👈</div>
-      <div style={{ fontSize:'16px', fontWeight:700, color:'#94A3B8' }}>Select a PM to view their brands</div>
-      <div style={{ fontSize:'13px' }}>Or switch to <strong style={{ color:'#7B5FFF' }}>Manager View</strong> for the full team overview</div>
-    </div>
-  );
-}
-
-function CorsError() {
-  return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'55vh', gap:'12px', maxWidth:'520px', margin:'0 auto', textAlign:'center' }}>
-      <div style={{ fontSize:'44px' }}>🚫</div>
-      <div style={{ fontSize:'16px', fontWeight:800, color:'#EF4444' }}>API Access Blocked</div>
-      <div style={{ fontSize:'13px', color:'#64748B', lineHeight:1.7 }}>The n8n proxy workflows (<code style={{ background:'rgba(123,95,255,0.12)', padding:'1px 6px', borderRadius:'4px', color:'#a58bff' }}>tts-proxy-dates</code> / <code style={{ background:'rgba(123,95,255,0.12)', padding:'1px 6px', borderRadius:'4px', color:'#a58bff' }}>tts-proxy-report</code>) may be inactive. Check that both workflows are Active in n8n.</div>
-    </div>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-</script>
-</body>
-</html>
-isplay:'flex', alignItems:'center', gap:'4px' }}>{icon&&<span>{icon}</span>}{label}</div>
-        <div style={{ fontSize:'22px', fontWeight:800, color:color||'#a58bff', lineHeight:1, letterSpacing:'-0.5px' }}>{value}</div>
-        {sub && <div style={{ fontSize:'11px', color:'#64748B', marginTop:'4px' }}>{sub}</div>}
-        {bar!=null && <div style={{ marginTop:'10px', background:'#091626', borderRadius:'4px', height:'4px' }}><div style={{ height:'100%', borderRadius:'4px', width:`${bar}%`, background:color||'#7B5FFF', transition:'width 0.3s' }} /></div>}
-      </div>
-    </div>
-  );
-}
-
-function MiniStat({ label, value, color }) {
-  return (
-    <div style={{ background:'#050c17', borderRadius:'7px', padding:'8px 10px' }}>
-      <div style={{ fontSize:'10px', color:'#475569', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.5px' }}>{label}</div>
-      <div style={{ fontSize:'15px', fontWeight:800, color }}>{value}</div>
-    </div>
-  );
-}
-
-function Th({ label, col, sortBy, sortDir, onSort, right }) {
-  const active = col && sortBy===col;
-  return (
-    <th onClick={()=>col&&onSort(col)} style={{ padding:'10px 14px', textAlign:right?'right':'left', cursor:col?'pointer':'default',
-      color:active?'#7B5FFF':'#475569', fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.6px', whiteSpace:'nowrap', userSelect:'none' }}>
-      {label}{active?(sortDir==='asc'?' ↑':' ↓'):''}
-    </th>
-  );
-}
-
-function Sparkline({ data, height=28, width=72 }) {
-  if (!data||data.every(v=>v===0)) return <span style={{ color:'#334155', fontSize:'11px' }}>no activity</span>;
-  const max = Math.max(...data, 1);
-  const pts = data.map((v,i) => `${(i/(data.length-1))*width},${height-(v/max)*(height-2)}`).join(' ');
-  const color = data[0] > data[data.length-1]*0.5 ? '#10B981' : '#EF4444';
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ overflow:'visible' }}>
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={pts.split(' ')[0].split(',')[0]} cy={pts.split(' ')[0].split(',')[1]} r="2.5" fill={color} />
-    </svg>
-  );
-}
-
-function DonutProgress({ value, max, color }) {
-  const pct = Math.min(value/max, 1);
-  const r=30, cx=40, cy=40, circ=2*Math.PI*r;
-  return (
-    <svg width="80" height="80" viewBox="0 0 80 80">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#0a1628" strokeWidth="8" />
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="8"
-        strokeDasharray={circ} strokeDashoffset={circ*(1-pct)}
-        strokeLinecap="round" transform="rotate(-90 40 40)" style={{ transition:'stroke-dashoffset 0.5s ease' }} />
-      <text x={cx} y={cy-4} textAnchor="middle" fill={color} fontSize="16" fontWeight="800">{value}</text>
-      <text x={cx} y={cy+10} textAnchor="middle" fill="#475569" fontSize="10">/{max}</text>
-    </svg>
-  );
-}
-
-function Spinner({ size=12 }) {
-  const [r, setR] = useState(0);
-  useEffect(() => { const id = setInterval(()=>setR(v=>(v+30)%360),100); return ()=>clearInterval(id); }, []);
   return <svg width={size} height={size} viewBox="0 0 12 12" style={{ flexShrink:0 }}><circle cx="6" cy="6" r="4" fill="none" stroke="#7B5FFF" strokeWidth="2" strokeDasharray="12 6" transform={`rotate(${r} 6 6)`} /></svg>;
 }
 
