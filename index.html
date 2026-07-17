@@ -115,33 +115,30 @@ const initials = name => name.split(' ').map(w=>w[0]).join('').toUpperCase().sli
 const DEFAULT_PMS = [
   {id:'abrar',name:'Abrar',color:PM_COLORS[0]},{id:'aman',name:'Aman',color:PM_COLORS[1]},
   {id:'amruta',name:'Amruta',color:PM_COLORS[2]},{id:'ansh',name:'Ansh',color:PM_COLORS[3]},
-  {id:'harshad',name:'Harshad',color:PM_COLORS[4]},{id:'jing',name:'Jing',color:PM_COLORS[5]},
-  {id:'kaustubh',name:'Kaustubh',color:PM_COLORS[6]},{id:'oshin',name:'Oshin',color:PM_COLORS[7]},
-  {id:'palak',name:'Palak',color:PM_COLORS[8]},{id:'ritika',name:'Ritika',color:PM_COLORS[9]},
-  {id:'saat',name:'Saat',color:PM_COLORS[10]},{id:'sakshi',name:'Sakshi',color:PM_COLORS[11]},
-  {id:'sanskrati',name:'Sanskrati',color:PM_COLORS[0]},{id:'simran',name:'Simran',color:PM_COLORS[1]},
-  {id:'sumit',name:'Sumit',color:PM_COLORS[2]},{id:'taanisha',name:'Taanisha',color:PM_COLORS[3]},
-  {id:'tanishk',name:'Tanishk',color:PM_COLORS[4]},
+  {id:'harshad',name:'Harshad',color:PM_COLORS[4]},{id:'kaustubh',name:'Kaustubh',color:PM_COLORS[5]},
+  {id:'oshin',name:'Oshin',color:PM_COLORS[6]},{id:'palak',name:'Palak',color:PM_COLORS[7]},
+  {id:'ritika',name:'Ritika',color:PM_COLORS[8]},{id:'sakshi',name:'Sakshi',color:PM_COLORS[9]},
+  {id:'sanskrati',name:'Sanskrati',color:PM_COLORS[10]},{id:'sumit',name:'Sumit',color:PM_COLORS[11]},
+  {id:'taanisha',name:'Taanisha',color:PM_COLORS[0]},{id:'tanishk',name:'Tanishk',color:PM_COLORS[1]},
+  {id:'yutong',name:'Yutong Shen',color:PM_COLORS[2]},
 ];
 
 const DEFAULT_BRAND_MAP = {
-  "Integrative Therapeutics":"abrar","PBfit":"abrar","Leatherman Tools":"abrar","youtheory":"abrar","Herbs, Etc.":"abrar","Life Extension Supplements":"abrar",
-  "Natural Factors":"aman","Fix-a-Flat":"aman","Davids Premium Oral Care":"aman","Flora Health Shop":"aman","Renzo's Vitamins":"aman","Cosyuree.":"aman","TruNiagen":"aman",
-  "HALEYS Beauty":"amruta","Kiyomi Skin":"amruta","skinfix":"amruta","Ulta Beauty":"amruta",
-  "GAT Sport USA":"ansh","livehumann":"ansh","MegaFood Shop":"ansh","Strider Bikes":"ansh","K9 Feline Natural":"ansh",
-  "One A Day Shop":"harshad","Floradix":"harshad","Gaia Herbs Shop":"harshad","Zenwise Health":"harshad","Emerald Labs":"harshad","Elevate organic":"harshad","Elevate Organic":"harshad",
-  "Murad Skincare":"jing",
+    "Baby Brezza":"abrar","Integrative Therapeutics":"abrar","Leatherman Tools":"abrar","Life Extension Supplements":"abrar","PBfit":"abrar","youtheory":"abrar",
+  "Davids Premium Oral Care":"aman","Fix-a-Flat":"aman","Flora Health Shop":"aman","Natural Factors":"aman","Olay Skin Care":"aman","Renzo's Vitamins":"aman",
+  "HALEYS Beauty":"amruta","Kiyomi Skin":"amruta","Kotex":"amruta","skinfix":"amruta","Skinfix":"amruta","Ulta Beauty":"amruta",
+  "GAT Sport USA":"ansh","K9 Feline Natural":"ansh","livehumann":"ansh","MegaFood Shop":"ansh","Metagenics Shop":"ansh","PetSafe Brand":"ansh","Saje Natural Wellness":"ansh","Strider Bikes":"ansh",
+  "Emerald Labs":"harshad","Floradix":"harshad","Gaia Herbs Shop":"harshad","One A Day Shop":"harshad","Zenwise Health":"harshad",
   "Away Travel":"kaustubh","Forever 21":"kaustubh","Roxy":"kaustubh","Volcom":"kaustubh",
-  "Brutus Broth":"oshin","Color Wow Hair":"oshin","CeraVe":"oshin",
-  "Buttermints":"palak","Mercola Market Shop":"palak","Thinx US":"palak","Wiley's Finest Shop":"palak",
-  "Megababe":"ritika","OLLY Wellness":"ritika","NOW":"ritika","Philips Shop US":"ritika","Vital Proteins Shop":"ritika","Kradle":"ritika",
-  "Keeps":"saat",
-  "Uqora Official":"sakshi","New Chapter Inc":"sakshi","The Original Swedish Candy":"sakshi","ILIA Beauty":"sakshi","Fazit":"sakshi","SuavecitoPomade":"sakshi",
-  "G2G Bar":"sanskrati","Heatonist - Stay Spicy":"sanskrati","Balance of Nature Shop":"sanskrati","Blue-Emu":"sanskrati","Hims & Hers":"sanskrati","Sakura of America Shop":"sanskrati",
-  "CureHydration":"simran","SmartMouth":"simran","Weider Global Nutrition":"simran","Baby Brezza":"simran","Pure Encapsulations Shop":"simran",
-  "MuscleTech":"sumit","SIXSTAR PRO":"sumit","NaturalSlimUSA":"sumit","Optimum Nutrition Shop":"sumit",
-  "Better Dog Supplements":"taanisha","BallBoyz Soap":"taanisha","Coco&Eve":"taanisha","Urban Decay Cosmetics":"taanisha","Snackworks":"taanisha",
-  "Barimelts":"tanishk","Dr. Tobias":"tanishk","Seeking Health":"tanishk",
+  "CeraVe":"oshin","Color Wow Hair":"oshin","Peace Out Skincare":"oshin","Setexgrip":"oshin","Winky Lux":"oshin",
+  "Beeup":"palak","Buttermints":"palak","drinkkoia":"palak","Mercola Market Shop":"palak","Pure Encapsulations Shop":"palak","Weider Global Nutrition":"palak","Wiley's Finest Shop":"palak",
+  "Megababe":"ritika","NOW":"ritika","OLLY Wellness":"ritika","Philips Shop US":"ritika","Vital Proteins Shop":"ritika",
+  "Fazit":"sakshi","ILIA Beauty":"sakshi","New Chapter Inc":"sakshi","SuavecitoPomade":"sakshi","The Original Swedish Candy":"sakshi","Uqora Official":"sakshi",
+  "Balance of Nature Shop":"sanskrati","Heatonist - Stay Spicy":"sanskrati","Hims & Hers":"sanskrati","Sakura of America Shop":"sanskrati","Superior Source":"sanskrati",
+  "KAEX USA":"sumit","MuscleTech":"sumit","NaturalSlimUSA":"sumit","Optimum Nutrition Shop":"sumit","SIXSTAR PRO":"sumit",
+  "BallBoyz Soap":"taanisha","Coco&Eve":"taanisha","Farmacy Beauty":"taanisha","Host Defense Mushrooms":"taanisha","Urban Decay Cosmetics":"taanisha",
+  "Barimelts":"tanishk","Dr. Tobias":"tanishk","Obvi":"tanishk","PureBoost":"tanishk","SmartMouth":"tanishk","SuperFeet Insoles":"tanishk","VitaCup":"tanishk",
+  "Azzaro":"yutong","Mugler Fragrances":"yutong","Phomemo":"yutong","TruSkin":"yutong",
 };
 
 const DEFAULT_GOALS = {
@@ -383,6 +380,11 @@ function Header({ dates, date, setDate, view, setView, period, setPeriod, loadin
       </>}
       <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'10px', flexShrink:0 }}>
         {loading && <span style={{ color:'#475569', fontSize:'12px', display:'flex', alignItems:'center', gap:'5px' }}><Spinner />Loading...</span>}
+        <button onClick={()=>{ if(confirm('Reset PM assignments and brand map to latest defaults?')){ localStorage.removeItem('tts_pms'); localStorage.removeItem('tts_brand_map'); location.reload(); } }}
+          style={{ background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#64748B', padding:'5px 13px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', transition:'all 0.15s' }}
+          onMouseEnter={e=>e.target.style.color='#F1F5F9'} onMouseLeave={e=>e.target.style.color='#64748B'}>
+          ↺ Reset
+        </button>
         <button onClick={onSettings} style={{ background:'#091626', border:'1px solid rgba(148,163,184,0.1)', color:'#64748B', padding:'5px 13px', borderRadius:'7px', cursor:'pointer', fontSize:'13px', transition:'all 0.15s' }}
           onMouseEnter={e=>e.target.style.color='#F1F5F9'} onMouseLeave={e=>e.target.style.color='#64748B'}>
           ⚙ Settings
